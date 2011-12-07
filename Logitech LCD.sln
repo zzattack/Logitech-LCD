@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lglcd", "lglcd\lglcd.vcxproj", "{60B6AB19-FFD4-4A43-AB6C-3A1D26D8EC74}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{60B6AB19-FFD4-4A43-AB6C-3A1D26D8EC74}.Debug|Win32.ActiveCfg = Debug|Win32
+		{60B6AB19-FFD4-4A43-AB6C-3A1D26D8EC74}.Debug|Win32.Build.0 = Debug|Win32
+		{60B6AB19-FFD4-4A43-AB6C-3A1D26D8EC74}.Release|Win32.ActiveCfg = Release|Win32
+		{60B6AB19-FFD4-4A43-AB6C-3A1D26D8EC74}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
