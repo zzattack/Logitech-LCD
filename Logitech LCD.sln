@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lglcd", "lglcd\lglcd.vcxproj", "{60B6AB19-FFD4-4A43-AB6C-3A1D26D8EC74}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LgLcd.NET", "LgLcd.NET\LgLcd.NET.csproj", "{6A21C0D9-1024-4774-948B-A918042A5D38}"
+	ProjectSection(ProjectDependencies) = postProject
+		{60B6AB19-FFD4-4A43-AB6C-3A1D26D8EC74} = {60B6AB19-FFD4-4A43-AB6C-3A1D26D8EC74}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

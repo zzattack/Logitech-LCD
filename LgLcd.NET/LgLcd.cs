@@ -247,31 +247,31 @@ namespace LgLcd.NET
 			int index,
 			out DeviceDesc description);
 
-		[DllImport("lgldcd.dll")]
+		[DllImport("lglcd.dll")]
 		public static extern ReturnValue EnumerateEx(
 			int connection,
 			int index,
 			out DeviceDescEx description);
 
-		[DllImport("lgldcd.dll")]
+		[DllImport("lglcd.dll")]
 		public static extern ReturnValue Open(OpenContext ctx);
 
-		[DllImport("lgldcd.dll")]
+		[DllImport("lglcd.dll")]
 		public static extern ReturnValue OpenByType(OpenByTypeContext ctx);
 
-		[DllImport("lgldcd.dll")]
+		[DllImport("lglcd.dll")]
 		public static extern ReturnValue Close(int device);
 
-		[DllImport("lgldcd.dll")]
+		[DllImport("lglcd.dll")]
 		public static extern ReturnValue ReadSoftButtons(int device, out int buttons);
 
-		[DllImport("lgldcd.dll")]
+		[DllImport("lglcd.dll")]
 		public static extern int UpdateBitmap(
 			int device,
 			Bitmap bitmap,
 			int priority);
 
-		[DllImport("lgldcd.dll")]
+		[DllImport("lglcd.dll")]
 		public static extern ReturnValue SetAsForegroundApp(int device,	bool yesNo);
 
 		#endregion
