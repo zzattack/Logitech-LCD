@@ -115,7 +115,7 @@ namespace LgLcd.NET
 
 		public delegate int ConfigureDelegate(
 			int connection,
-			object context);
+			IntPtr context);
 
 		public delegate int NotificationDelegate(
 			int connection,
@@ -129,7 +129,7 @@ namespace LgLcd.NET
 		public delegate int SoftButtonsDelegate(
 			int device,
 			SoftButtonFlags buttons,
-			object context);
+			IntPtr context);
 
 		#endregion
 
@@ -162,24 +162,24 @@ namespace LgLcd.NET
 		public struct NotificationContext
 		{
 			public NotificationDelegate OnNotification;
-			public object Context;
+			public IntPtr Context;
 		}
 
 		[StructLayout(LayoutKind.Sequential, Pack = 8)]
 		public struct ConfigureContext
 		{
 			public ConfigureDelegate OnConfigure;
-			public object Context;
+			public IntPtr Context;
 		}
 
-		[StructLayout(LayoutKind.Sequential, Pack=8)] // this
+		[StructLayout(LayoutKind.Sequential, Pack=8)]
 		public struct ConnectContext
 		{
 			[MarshalAs(UnmanagedType.LPTStr)]
 			public string AppFriendlyName;
-			public int IsPersistent;
-			public int IsAutostartable;
-			public int OnConfigure;
+			public bool IsPersistent;
+			public bool IsAutostartable;
+			public ConfigureContext OnConfigure;
 			public int Connection;
 		}
 
@@ -233,58 +233,58 @@ namespace LgLcd.NET
 		#region Functions
 
 		[DllImport("lglcd.dll")]
-		public static extern ReturnValue Init();
+		public static extern ReturnValue lgLcdInit();
 
 		[DllImport("lglcd.dll")]
-		public static extern ReturnValue DeInit();
+		public static extern ReturnValue lgLcdDeInit();
 
 		[DllImport("lglcd.dll")]
-		public static extern ReturnValue Connect(ref ConnectContext ctx);
+		public static extern ReturnValue lgLcdConnect(ref ConnectContext ctx);
 
 		[DllImport("lglcd.dll")]
-		public static extern ReturnValue ConnectEx(ref ConnectContextEx ctx);
+		public static extern ReturnValue lgLcdConnectEx(ref ConnectContextEx ctx);
 
 		[DllImport("lglcd.dll")]
-		public static extern ReturnValue Disconnect(int connection);
+		public static extern ReturnValue lgLcdDisconnect(int connection);
 
 		[DllImport("lglcd.dll")]
-		public static extern ReturnValue SetDeviceFamiliesToUse(
+		public static extern ReturnValue lgLcdSetDeviceFamiliesToUse(
 			int connection,
 			DeviceFamilyFlags familiesSupported,
 			int reserved1);
 
 		[DllImport("lglcd.dll")]
-		public static extern ReturnValue Enumerate(
+		public static extern ReturnValue lgLcdEnumerate(
 			int connection,
 			int index,
 			out DeviceDesc description);
 
 		[DllImport("lglcd.dll")]
-		public static extern ReturnValue EnumerateEx(
+		public static extern ReturnValue lgLcdEnumerateEx(
 			int connection,
 			int index,
 			out DeviceDescEx description);
 
 		[DllImport("lglcd.dll")]
-		public static extern ReturnValue Open(ref OpenContext ctx);
+		public static extern ReturnValue lgLcdOpen(ref OpenContext ctx);
 
 		[DllImport("lglcd.dll")]
-		public static extern ReturnValue OpenByType(ref OpenByTypeContext ctx);
+		public static extern ReturnValue lgLcdOpenByType(ref OpenByTypeContext ctx);
 
 		[DllImport("lglcd.dll")]
-		public static extern ReturnValue Close(int device);
+		public static extern ReturnValue lgLcdClose(int device);
 
 		[DllImport("lglcd.dll")]
-		public static extern ReturnValue ReadSoftButtons(int device, out int buttons);
+		public static extern ReturnValue lgLcdReadSoftButtons(int device, out int buttons);
 
 		[DllImport("lglcd.dll")]
-		public static extern int UpdateBitmap(
+		public static extern ReturnValue lgLcdUpdateBitmap(
 			int device,
 			Bitmap bitmap,
 			int priority);
 
 		[DllImport("lglcd.dll")]
-		public static extern ReturnValue SetAsForegroundApp(int device,	bool yesNo);
+		public static extern ReturnValue lgLcdSetAsForegroundApp(int device, bool yesNo);
 
 		#endregion
 
