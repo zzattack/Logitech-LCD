@@ -134,86 +134,98 @@ namespace LgLcd.NET
 		#endregion
 
 		#region Structures
-		
+
+		[StructLayout(LayoutKind.Sequential, Pack = 8)]
 		public struct DeviceDesc
 		{
-			int Width { get; set; }
-			int Height { get; set; }
-			int Bpp { get; set; }
-			int NumSoftButtons { get; set; }
+			public int Width;
+			public int Height;
+			public int Bpp;
+			public int NumSoftButtons;
 		}
 
+		[StructLayout(LayoutKind.Sequential, Pack = 8)]
 		public struct DeviceDescEx
 		{
-			DeviceFamilyFlags FamilyId { get; set; }
-			string DisplayName { get; set; }
-			int Width { get; set; }
-			int Height { get; set; }
-			int Bpp { get; set; }
-			int NumSoftButtons { get; set; }
-			int Reserved1 { get; set; }
-			int Reserved2 { get; set; }
+			public DeviceFamilyFlags FamilyId;
+			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
+			public string DisplayName;
+			public int Width;
+			public int Height;
+			public int Bpp;
+			public int NumSoftButtons;
+			public int Reserved1;
+			public int Reserved2;
 		}
 
-		struct NotificationContext
+		[StructLayout(LayoutKind.Sequential, Pack = 8)]
+		public struct NotificationContext
 		{
-			NotificationDelegate OnNotification { get; set; }
-			object context { get; set; }
-		}
-		
-		struct ConfigureContext
-		{
-			ConfigureDelegate OnConfigure { get; set; } 
-			object Context { get; set; }
+			public NotificationDelegate OnNotification;
+			public object Context;
 		}
 
+		[StructLayout(LayoutKind.Sequential, Pack = 8)]
+		public struct ConfigureContext
+		{
+			public ConfigureDelegate OnConfigure;
+			public object Context;
+		}
+
+		[StructLayout(LayoutKind.Sequential, Pack=8)] // this
 		public struct ConnectContext
 		{
-			string AppFriendlyName { get; set; }
-			bool IsPersistent { get; set; }
-			bool IsAutostartable { get; set; }
-			ConfigureContext OnConfigure { get; set; }
-			int Connection { get; set; }
+			[MarshalAs(UnmanagedType.LPTStr)]
+			public string AppFriendlyName;
+			public int IsPersistent;
+			public int IsAutostartable;
+			public int OnConfigure;
+			public int Connection;
 		}
 
+		[StructLayout(LayoutKind.Sequential, Pack = 8)]
 		public struct ConnectContextEx
 		{
-			string AppFriendlyName { get; set; }
-			bool IsPersistent { get; set; }
-			bool IsAutostartable { get; set; }
-			ConfigureContext OnConfigure { get; set; }
-			int Connection { get; set; }
-			AppletCapabilities AppletCapabilitiesSupported { get; set; }
-			int Reserved1 { get; set; }
-			NotificationContext OnNotify { get; set; }
+			public string AppFriendlyName;
+			public bool IsPersistent;
+			public bool IsAutostartable;
+			public ConfigureContext OnConfigure;
+			public int Connection;
+			public AppletCapabilities AppletCapabilitiesSupported;
+			public int Reserved1;
+			public NotificationContext OnNotify;
 		}
 
+		[StructLayout(LayoutKind.Sequential, Pack = 8)]
 		public struct SoftbuttonsChangedContext
 		{
-			SoftButtonsDelegate OnSoftbuttonsChanged { get; set; }
-			object Context { get; set; }
+			public SoftButtonsDelegate OnSoftbuttonsChanged;
+			public object Context;
 		}
 
+		[StructLayout(LayoutKind.Sequential, Pack = 8)]
 		public struct OpenContext
 		{
-			int Connection { get; set; }
-			int Index { get; set; }
-			SoftbuttonsChangedContext OnSoftbuttonsChanged { get; set; }
-			int device { get; set; }
+			public int Connection;
+			public int Index;
+			public SoftbuttonsChangedContext OnSoftbuttonsChanged;
+			public int Device;
 		}
 
+		[StructLayout(LayoutKind.Sequential, Pack = 8)]
 		public struct OpenByTypeContext
 		{
-			int Connection { get; set; }
-			int DeviceType { get; set; }
-			SoftbuttonsChangedContext OnSoftbuttonsChanged { get; set; }
-			int Device { get; set; }
+			public int Connection;
+			public int DeviceType;
+			public SoftbuttonsChangedContext OnSoftbuttonsChanged;
+			public int Device;
 		}
-		
+
+		[StructLayout(LayoutKind.Sequential, Pack = 8)]
 		public struct Bitmap
 		{
-			public BitmapFormat Format { get; set; }
-			public byte[] Pixels { get; set; }
+			public BitmapFormat Format;
+			public byte[] Pixels;
 		}
 
 		#endregion
@@ -227,10 +239,10 @@ namespace LgLcd.NET
 		public static extern ReturnValue DeInit();
 
 		[DllImport("lglcd.dll")]
-		public static extern ReturnValue Connect(ConnectContext ctx);
+		public static extern ReturnValue Connect(ref ConnectContext ctx);
 
 		[DllImport("lglcd.dll")]
-		public static extern ReturnValue ConnectEx(ConnectContextEx ctx);
+		public static extern ReturnValue ConnectEx(ref ConnectContextEx ctx);
 
 		[DllImport("lglcd.dll")]
 		public static extern ReturnValue Disconnect(int connection);
@@ -254,10 +266,10 @@ namespace LgLcd.NET
 			out DeviceDescEx description);
 
 		[DllImport("lglcd.dll")]
-		public static extern ReturnValue Open(OpenContext ctx);
+		public static extern ReturnValue Open(ref OpenContext ctx);
 
 		[DllImport("lglcd.dll")]
-		public static extern ReturnValue OpenByType(OpenByTypeContext ctx);
+		public static extern ReturnValue OpenByType(ref OpenByTypeContext ctx);
 
 		[DllImport("lglcd.dll")]
 		public static extern ReturnValue Close(int device);
