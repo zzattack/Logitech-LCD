@@ -88,9 +88,6 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="lglcd.h" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="exports.def" />
   </ItemGroup>
   <ItemGroup>
