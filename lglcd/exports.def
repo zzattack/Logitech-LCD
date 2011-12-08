@@ -1,6 +1,8 @@
 EXPORTS
 lgLcdInit
 lgLcdDeInit
+lgLcdConnectA
+lgLcdConnectW
 lgLcdConnectExA
 lgLcdConnectExW
 lgLcdDisconnect
