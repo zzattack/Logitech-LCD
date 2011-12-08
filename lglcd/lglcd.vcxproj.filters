@@ -20,6 +20,11 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <None Include="exports.def">
+      <Filter>Source Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="DllMain.c">
       <Filter>Source Files</Filter>
     </ClCompile>

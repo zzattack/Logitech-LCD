@@ -1,0 +1,16 @@
+EXPORTS
+lgLcdInit
+lgLcdDeInit
+lgLcdConnectExA
+lgLcdConnectExW
+lgLcdDisconnect
+lgLcdSetDeviceFamiliesToUse
+lgLcdEnumerate
+lgLcdEnumerateExA
+lgLcdEnumerateExW
+lgLcdOpen
+lgLcdOpenByType
+lgLcdClose
+lgLcdReadSoftButtons
+lgLcdUpdateBitmap
+lgLcdSetAsLCDForegroundApp
