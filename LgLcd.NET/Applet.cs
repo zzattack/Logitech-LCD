@@ -6,7 +6,7 @@ using System.ComponentModel;
 
 namespace LgLcdNET
 {
-	public class Applet
+	public abstract class Applet
 	{
 		// The connection handle
 		public int Handle { get; private set; }
@@ -16,36 +16,42 @@ namespace LgLcdNET
 		public bool Autostartable { get; private set; }
 		public AppletCapabilities CapabilitiesSupported { get; private set; }
 
-		// Config
-		protected virtual void OnConfigure() { }
 		// Notifications
-		protected abstract void OnDeviceArrival(DeviceType deviceType) { }
-		protected abstract void OnDeviceRemoval(DeviceType deviceType) { }
-		protected abstract void OnAppletEnabled() { }
-		protected abstract void OnAppletDisabled() { }
-		protected abstract void OnCloseConnection() { }
+		protected abstract void OnDeviceArrival(DeviceType deviceType);
+		protected abstract void OnDeviceRemoval(DeviceType deviceType);
+		protected abstract void OnAppletEnabled();
+		protected abstract void OnAppletDisabled();
+		protected abstract void OnCloseConnection();
 
-		public void Connect(string friendlyName, bool autostartable, AppletCapabilities appletCaps) {
+		// Called when the user wishes to configure our application from the LCDMon
+		protected virtual void OnConfigure() { }
+
+		public void Connect(string friendlyName, bool autostartable, AppletCapabilities appletCaps)
+		{
 			FriendlyName = friendlyName;
 			Autostartable = autostartable;
-			CapabilitiesSupported = appletCaps;			
-			ConnectContextEx ctx = new ConnectContextEx() {
+			CapabilitiesSupported = appletCaps;
+			ConnectContextEx ctx = new ConnectContextEx()
+			{
 				AppFriendlyName = friendlyName,
 				AppletCapabilitiesSupported = appletCaps,
 				IsAutostartable = autostartable,
 				IsPersistent = true, // deprecated as of 3.00
-				OnConfigure = new ConfigureContext() {
+				OnConfigure = new ConfigureContext()
+				{
 					Context = IntPtr.Zero,
 					OnConfigure = new ConfigureDelegate(ConfigureHandler),
 				},
-				OnNotify = new NotificationContext() {
+				OnNotify = new NotificationContext()
+				{
 					Context = IntPtr.Zero,
 					OnNotification = new NotificationDelegate(NotifyHandler),
 				},
-				Reserved1 = 0,								
-			};			
+				Reserved1 = 0,
+			};
 			ReturnValue error = LgLcd.ConnectEx(ref ctx);
-			if (error != ReturnValue.ErrorSuccess) {
+			if (error != ReturnValue.ErrorSuccess)
+			{
 				// TODO: Handle errors
 				// ServiceNotActive
 				// InvalidParameter
@@ -54,15 +60,17 @@ namespace LgLcdNET
 				// RcpXWrongPipeVersion
 				// Xxx
 				throw new Exception();
-			}			
+			}
 			Handle = ctx.Connection;
 		}
 
-		public void Disconnect() {
+		public void Disconnect()
+		{
 			LgLcd.Disconnect(Handle);
 		}
 
-		private int ConfigureHandler(int connection, IntPtr context) {
+		private int ConfigureHandler(int connection, IntPtr context)
+		{
 			OnConfigure();
 			return 0;
 		}
@@ -74,8 +82,10 @@ namespace LgLcdNET
 			int notifyParam1,
 			int notifyParam2,
 			int notifyParam3,
-			int notifyParam4) {
-			switch (notificationCode) {
+			int notifyParam4)
+		{
+			switch (notificationCode)
+			{
 				case NotificationCode.DeviceArrival:
 					OnDeviceArrival((DeviceType)notifyParam1);
 					break;
@@ -95,5 +105,5 @@ namespace LgLcdNET
 			}
 			return 0;
 		}
-	}	
+	}
 }
