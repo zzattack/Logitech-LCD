@@ -40,7 +40,7 @@ namespace LgLcdNET
 
 		public Device(DeviceType type)
 		{
-			if (Type != DeviceType.Monochrome && Type != DeviceType.Qvga)
+			if (type != DeviceType.Monochrome && type != DeviceType.Qvga)
 			{
 				throw new InvalidEnumArgumentException();
 			}
