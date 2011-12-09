@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using LgLcdNET;
 using System.ComponentModel;
 
-namespace LgLcdNET
-{
-	public abstract class Applet
-	{
+namespace LgLcdNET {
+
+	public abstract class Applet {
 		// The connection handle
 		public int Handle { get; private set; }
 
@@ -26,50 +22,47 @@ namespace LgLcdNET
 		// Called when the user wishes to configure our application from the LCDMon
 		protected virtual void OnConfigure() { }
 
-		public void Connect(string friendlyName, bool autostartable, AppletCapabilities appletCaps)
-		{
+		static Applet() {
+			LgLcd.Init();
+			AppDomain.CurrentDomain.ProcessExit += delegate(object s, EventArgs e) {
+				LgLcd.DeInit();
+			};
+		}
+
+		public void Connect(string friendlyName, bool autostartable, AppletCapabilities appletCaps) {
 			FriendlyName = friendlyName;
 			Autostartable = autostartable;
 			CapabilitiesSupported = appletCaps;
-			ConnectContextEx ctx = new ConnectContextEx()
-			{
+			ConnectContextEx ctx = new ConnectContextEx() {
 				AppFriendlyName = friendlyName,
 				AppletCapabilitiesSupported = appletCaps,
 				IsAutostartable = autostartable,
 				IsPersistent = true, // deprecated as of 3.00
-				OnConfigure = new ConfigureContext()
-				{
+				OnConfigure = new ConfigureContext() {
 					Context = IntPtr.Zero,
 					OnConfigure = new ConfigureDelegate(ConfigureHandler),
 				},
-				OnNotify = new NotificationContext()
-				{
+				OnNotify = new NotificationContext() {
 					Context = IntPtr.Zero,
 					OnNotification = new NotificationDelegate(NotifyHandler),
 				},
 				Reserved1 = 0,
 			};
 			ReturnValue error = LgLcd.ConnectEx(ref ctx);
-			if (error != ReturnValue.ErrorSuccess)
-			{
-				if (error == ReturnValue.ErrorServiceNotActive)
-				{
+			if (error != ReturnValue.ErrorSuccess) {
+				if (error == ReturnValue.ErrorServiceNotActive) {
 					throw new Exception("lgLcdInit() has not been called yet.");
 				}
-				else if (error == ReturnValue.ErrorInvalidParameter)
-				{
+				else if (error == ReturnValue.ErrorInvalidParameter) {
 					throw new ArgumentException("friendlyName must not be null");
 				}
-				else if (error == ReturnValue.ErrorFileNotFound)
-				{
+				else if (error == ReturnValue.ErrorFileNotFound) {
 					throw new Exception("LCDMon is not running on the system.");
 				}
-				else if (error == ReturnValue.ErrorAlreadyExists)
-				{
+				else if (error == ReturnValue.ErrorAlreadyExists) {
 					throw new Exception("The same client is already connected.");
 				}
-				else if (error == ReturnValue.RcpXWrongPipeVersion)
-				{
+				else if (error == ReturnValue.RcpXWrongPipeVersion) {
 					throw new Exception("LCDMon does not understand the protocol.");
 				}
 				throw new Win32Exception((int)error);
@@ -77,25 +70,20 @@ namespace LgLcdNET
 			Handle = ctx.Connection;
 		}
 
-		public void Disconnect()
-		{
+		public void Disconnect() {
 			ReturnValue error = LgLcd.Disconnect(Handle);
-			if (error != ReturnValue.ErrorSuccess)
-			{
-				if (error == ReturnValue.ErrorServiceNotActive)
-				{
+			if (error != ReturnValue.ErrorSuccess) {
+				if (error == ReturnValue.ErrorServiceNotActive) {
 					throw new Exception("lgLcdInit() has not been called yet.");
 				}
-				else if (error == ReturnValue.ErrorInvalidParameter)
-				{
+				else if (error == ReturnValue.ErrorInvalidParameter) {
 					throw new Exception("Not connected.");
 				}
 				throw new Win32Exception((int)error);
 			}
 		}
 
-		private int ConfigureHandler(int connection, IntPtr context)
-		{
+		private int ConfigureHandler(int connection, IntPtr context) {
 			OnConfigure();
 			return 0;
 		}
@@ -107,10 +95,8 @@ namespace LgLcdNET
 			int notifyParam1,
 			int notifyParam2,
 			int notifyParam3,
-			int notifyParam4)
-		{
-			switch (notificationCode)
-			{
+			int notifyParam4) {
+			switch (notificationCode) {
 				case NotificationCode.DeviceArrival:
 					OnDeviceArrival((DeviceType)notifyParam1);
 					break;
