@@ -1,86 +1,100 @@
 ﻿using System;
 using System.ComponentModel;
 
-namespace LgLcdNET {
+namespace LgLcd {
+
+	[Flags]
+	public enum AppletCapabilities {
+		Monochrome = LgLcd.AppletCapabilities.Bw,
+		Qvga = LgLcd.AppletCapabilities.Qvga,
+	}
 
 	public abstract class Applet {
+
 		// The connection handle
-		public int Handle { get; private set; }
+		private int handle = LgLcd.InvalidConnection;
+		public int Handle { get { return handle; } }
+
+		// Gets whether the applet is currently connected to LCDMon
+		public bool Connected { get { return handle != LgLcd.InvalidConnection; } }
 
 		// Properties
 		public string FriendlyName { get; private set; }
 		public bool Autostartable { get; private set; }
 		public AppletCapabilities CapabilitiesSupported { get; private set; }
 
-		// Notifications
+		// Notifications that must be implemented by an applet
 		protected abstract void OnDeviceArrival(DeviceType deviceType);
 		protected abstract void OnDeviceRemoval(DeviceType deviceType);
 		protected abstract void OnAppletEnabled();
 		protected abstract void OnAppletDisabled();
 		protected abstract void OnCloseConnection();
 
-		// Called when the user wishes to configure our application from the LCDMon
-		protected virtual void OnConfigure() { }
+		// Called when the user wishes to configure our application from LCDMon
+		protected abstract void OnConfigure();
 
 		static Applet() {
 			LgLcd.Init();
+			// Queue DeInit to be called on application exit
 			AppDomain.CurrentDomain.ProcessExit += delegate(object s, EventArgs e) {
 				LgLcd.DeInit();
 			};
 		}
 
-		public void Connect(string friendlyName, bool autostartable, AppletCapabilities appletCaps) {
+		public void Connect(
+			string friendlyName,
+			bool autostartable,
+			AppletCapabilities appletCaps) {
+			if (Connected) {
+				throw new Exception("Already connected.");
+			}
 			FriendlyName = friendlyName;
 			Autostartable = autostartable;
 			CapabilitiesSupported = appletCaps;
-			ConnectContextEx ctx = new ConnectContextEx() {
+			var ctx = new LgLcd.ConnectContextEx() {
 				AppFriendlyName = friendlyName,
-				AppletCapabilitiesSupported = appletCaps,
+				AppletCapabilitiesSupported = (LgLcd.AppletCapabilities)appletCaps,
 				IsAutostartable = autostartable,
-				IsPersistent = true, // deprecated as of 3.00
-				OnConfigure = new ConfigureContext() {
+				IsPersistent = true, // deprecated and ignored as of 3.00
+				OnConfigure = new LgLcd.ConfigureContext() {
 					Context = IntPtr.Zero,
-					OnConfigure = new ConfigureDelegate(ConfigureHandler),
+					OnConfigure = new LgLcd.ConfigureDelegate(ConfigureHandler),
 				},
-				OnNotify = new NotificationContext() {
+				OnNotify = new LgLcd.NotificationContext() {
 					Context = IntPtr.Zero,
-					OnNotification = new NotificationDelegate(NotifyHandler),
+					OnNotification = new LgLcd.NotificationDelegate(NotifyHandler),
 				},
 				Reserved1 = 0,
 			};
-			ReturnValue error = LgLcd.ConnectEx(ref ctx);
-			if (error != ReturnValue.ErrorSuccess) {
-				if (error == ReturnValue.ErrorServiceNotActive) {
-					throw new Exception("lgLcdInit() has not been called yet.");
+			var error = LgLcd.ConnectEx(ref ctx);
+			if (error != LgLcd.ReturnValue.ErrorSuccess) {
+				if (error == LgLcd.ReturnValue.ErrorInvalidParameter) {
+					throw new ArgumentException("FriendlyName must not be null.");
 				}
-				else if (error == ReturnValue.ErrorInvalidParameter) {
-					throw new ArgumentException("friendlyName must not be null");
-				}
-				else if (error == ReturnValue.ErrorFileNotFound) {
+				else if (error == LgLcd.ReturnValue.ErrorFileNotFound) {
 					throw new Exception("LCDMon is not running on the system.");
 				}
-				else if (error == ReturnValue.ErrorAlreadyExists) {
+				else if (error == LgLcd.ReturnValue.ErrorAlreadyExists) {
 					throw new Exception("The same client is already connected.");
 				}
-				else if (error == ReturnValue.RcpXWrongPipeVersion) {
+				else if (error == LgLcd.ReturnValue.RcpXWrongPipeVersion) {
 					throw new Exception("LCDMon does not understand the protocol.");
 				}
 				throw new Win32Exception((int)error);
 			}
-			Handle = ctx.Connection;
+			handle = ctx.Connection;
 		}
 
 		public void Disconnect() {
-			ReturnValue error = LgLcd.Disconnect(Handle);
-			if (error != ReturnValue.ErrorSuccess) {
-				if (error == ReturnValue.ErrorServiceNotActive) {
-					throw new Exception("lgLcdInit() has not been called yet.");
-				}
-				else if (error == ReturnValue.ErrorInvalidParameter) {
-					throw new Exception("Not connected.");
-				}
+			if (!Connected) {
+				throw new Exception("Not connected.");
+			}
+			var error = LgLcd.Disconnect(Handle);
+			if (error != LgLcd.ReturnValue.ErrorSuccess) {
 				throw new Win32Exception((int)error);
 			}
+			// Reset the handle
+			handle = LgLcd.InvalidConnection;
 		}
 
 		private int ConfigureHandler(int connection, IntPtr context) {
@@ -91,26 +105,26 @@ namespace LgLcdNET {
 		private int NotifyHandler(
 			int connection,
 			IntPtr context,
-			NotificationCode notificationCode,
+			LgLcd.NotificationCode notificationCode,
 			int notifyParam1,
 			int notifyParam2,
 			int notifyParam3,
 			int notifyParam4) {
 			switch (notificationCode) {
-				case NotificationCode.DeviceArrival:
+				case LgLcd.NotificationCode.DeviceArrival:
 					OnDeviceArrival((DeviceType)notifyParam1);
 					break;
-				case NotificationCode.DeviceRemoval:
+				case LgLcd.NotificationCode.DeviceRemoval:
 					// All devices of the given type got disabled
 					OnDeviceRemoval((DeviceType)notifyParam1);
 					break;
-				case NotificationCode.AppletEnabled:
+				case LgLcd.NotificationCode.AppletEnabled:
 					OnAppletEnabled();
 					break;
-				case NotificationCode.AppletDisabled:
+				case LgLcd.NotificationCode.AppletDisabled:
 					OnAppletDisabled();
 					break;
-				case NotificationCode.CloseConnection:
+				case LgLcd.NotificationCode.CloseConnection:
 					OnCloseConnection();
 					break;
 			}

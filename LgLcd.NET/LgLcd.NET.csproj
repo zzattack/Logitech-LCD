@@ -8,7 +8,7 @@
     <ProjectGuid>{6A21C0D9-1024-4774-948B-A918042A5D38}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>LgLcdNET</RootNamespace>
+    <RootNamespace>LgLcd</RootNamespace>
     <AssemblyName>LgLcd.NET</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
