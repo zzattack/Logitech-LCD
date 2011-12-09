@@ -20,7 +20,7 @@ namespace LgLcdTest
 				device.Open(this);
 				// Try dislplay sample bitmap
 				Bitmap bmp = (Bitmap)Bitmap.FromFile(@"..\..\qvga_sample.bmp");
-				device.UpdateBitmap(bmp as Bitmap, Priority.Normal);
+				device.UpdateBitmap(bmp as Bitmap, Priority.Normal, false, false);
 			}
 
 			protected override void OnDeviceRemoval(DeviceType deviceType)

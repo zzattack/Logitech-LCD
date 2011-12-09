@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
+using System.ComponentModel;
 
 namespace LgLcdNET
 {
@@ -39,6 +40,10 @@ namespace LgLcdNET
 
 		public Device(DeviceType type)
 		{
+			if (Type != DeviceType.Monochrome && Type != DeviceType.Qvga)
+			{
+				throw new InvalidEnumArgumentException();
+			}
 			Type = type;
 		}
 
@@ -57,12 +62,20 @@ namespace LgLcdNET
 			ReturnValue error = LgLcd.OpenByType(ref ctx);
 			if (error != ReturnValue.ErrorSuccess)
 			{
-				// TODO: Handle possible errors
-				// ServiceNotActive (Init not called)
-				// InvalidParameter (Invalid/closed handle/connection/applet or enum value)
-				// AlreadyExists (DeviceType already opened)
-				// Xxx
-				throw new Exception();
+				if (error == ReturnValue.ErrorServiceNotActive)
+				{
+					throw new Exception("lgLcdInit() has not been called yet.");
+				}
+				else if (error == ReturnValue.ErrorInvalidParameter)
+				{
+					// Either ctx is NULL, or ctx->connection is not valid, or ctx->deviceType does not hold a valid device type.
+					throw new Exception("The applet must be connected.");
+				}
+				else if (error == ReturnValue.ErrorAlreadyExists)
+				{
+					throw new Exception("The specified device has already been opened in the given applet.");
+				}
+				throw new Win32Exception((int)error);
 			}
 			Handle = ctx.Device;
 		}
@@ -84,29 +97,88 @@ namespace LgLcdNET
 				Type == DeviceType.Qvga ? PixelFormat.Format32bppArgb : PixelFormat.Format8bppIndexed);
 			Marshal.Copy(bitmapData.Scan0, lgBitmap.Pixels, 0, lgBitmap.Pixels.Length);
 			bitmap.UnlockBits(bitmapData);
-			LgLcd.UpdateBitmap(
+			ReturnValue error = LgLcd.UpdateBitmap(
 				Handle,
 				lgBitmap,
 				(uint)priority
 				| (syncUpdate ? 0x80000000 : 0)
 				| (syncCompleteWithinFrame ? 0xC0000000 : 0));
+			if (error != ReturnValue.ErrorSuccess)
+			{
+				if (error == ReturnValue.ErrorServiceNotActive)
+				{
+					throw new Exception("lgLcdInit() has not been called yet.");
+				}
+				else if (error == ReturnValue.ErrorInvalidParameter)
+				{
+					// The specified device handle, the bitmap header pointer or the type of bitmap is invalid.
+					throw new Exception();
+				}
+				else if (error == ReturnValue.ErrorDeviceNotConnected)
+				{
+					throw new Exception("The specified device has been disconnected.");
+				}
+				else if (error == ReturnValue.ErrorAccessDenied)
+				{
+					throw new Exception("Synchronous operation was not displayed on the LCD within the frame interval (30 ms). This error code is only returned when the priority field of the lgLCDUpdateBitmap uses the macro LGLCD_SYNC_COMPLETE_WITHIN_FRAME().");
+				}
+				throw new Win32Exception((int)error);
+			}
 		}
 
 		public SoftButtonFlags ReadSoftButtons()
 		{
 			SoftButtonFlags buttonFlags;
-			LgLcd.ReadSoftButtons(Handle, out buttonFlags);
+			ReturnValue error = LgLcd.ReadSoftButtons(Handle, out buttonFlags);
+			if (error != ReturnValue.ErrorSuccess)
+			{
+				if (error == ReturnValue.ErrorServiceNotActive)
+				{
+					throw new Exception("lgLcdInit() has not been called yet.");
+				}
+				else if (error == ReturnValue.ErrorInvalidParameter)
+				{
+					// The specified device handle or the result pointer is invalid.
+					throw new Exception();
+				}
+				else if (error == ReturnValue.ErrorDeviceNotConnected)
+				{
+					throw new Exception("The specified device has been disconnected.");
+				}
+				throw new Win32Exception((int)error);
+			}			
 			return buttonFlags;
 		}
 
 		public void SetAsLCDForegroundApp(bool yesNo)
 		{
-			LgLcd.SetAsLCDForegroundApp(Handle, yesNo);
+			ReturnValue error = LgLcd.SetAsLCDForegroundApp(Handle, yesNo);
+			if (error != ReturnValue.ErrorSuccess)
+			{
+				if (error == ReturnValue.ErrorLockFailed)
+				{
+					throw new Exception("The operation could not be completed.");
+				}
+				throw new Win32Exception((int)error);
+			}
 		}
 
 		public void Close()
 		{
-			LgLcd.Close(Handle);
+			ReturnValue error = LgLcd.Close(Handle);
+			if (error != ReturnValue.ErrorSuccess)
+			{
+				if (error == ReturnValue.ErrorServiceNotActive)
+				{
+					throw new Exception("lgLcdInit() has not been called yet.");
+				}
+				else if (error == ReturnValue.ErrorInvalidParameter)
+				{
+					// The specified device handle is invalid.
+					throw new Exception();
+				}
+				throw new Win32Exception((int)error);
+			}
 		}
 
 		private int OnSoftButtons(int device, SoftButtonFlags buttons, IntPtr context)

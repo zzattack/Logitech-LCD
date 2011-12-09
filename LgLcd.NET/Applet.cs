@@ -52,21 +52,46 @@ namespace LgLcdNET
 			ReturnValue error = LgLcd.ConnectEx(ref ctx);
 			if (error != ReturnValue.ErrorSuccess)
 			{
-				// TODO: Handle errors
-				// ServiceNotActive
-				// InvalidParameter
-				// FileNotFound
-				// AlreadyExists
-				// RcpXWrongPipeVersion
-				// Xxx
-				throw new Exception();
+				if (error == ReturnValue.ErrorServiceNotActive)
+				{
+					throw new Exception("lgLcdInit() has not been called yet.");
+				}
+				else if (error == ReturnValue.ErrorInvalidParameter)
+				{
+					throw new ArgumentException("friendlyName must not be null");
+				}
+				else if (error == ReturnValue.ErrorFileNotFound)
+				{
+					throw new Exception("LCDMon is not running on the system.");
+				}
+				else if (error == ReturnValue.ErrorAlreadyExists)
+				{
+					throw new Exception("The same client is already connected.");
+				}
+				else if (error == ReturnValue.RcpXWrongPipeVersion)
+				{
+					throw new Exception("LCDMon does not understand the protocol.");
+				}
+				throw new Win32Exception((int)error);
 			}
 			Handle = ctx.Connection;
 		}
 
 		public void Disconnect()
 		{
-			LgLcd.Disconnect(Handle);
+			ReturnValue error = LgLcd.Disconnect(Handle);
+			if (error != ReturnValue.ErrorSuccess)
+			{
+				if (error == ReturnValue.ErrorServiceNotActive)
+				{
+					throw new Exception("lgLcdInit() has not been called yet.");
+				}
+				else if (error == ReturnValue.ErrorInvalidParameter)
+				{
+					throw new Exception("Not connected.");
+				}
+				throw new Win32Exception((int)error);
+			}
 		}
 
 		private int ConfigureHandler(int connection, IntPtr context)
