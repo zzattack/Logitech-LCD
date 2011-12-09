@@ -19,11 +19,11 @@ namespace LgLcdNET
 		// Config
 		protected virtual void OnConfigure() { }
 		// Notifications
-		protected virtual void OnDeviceArrival(DeviceType deviceType) { }
-		protected virtual void OnDeviceRemoval(DeviceType deviceType) { }
-		protected virtual void OnAppletEnabled() { }
-		protected virtual void OnAppletDisabled() { }
-		protected virtual void OnCloseConnection() { }
+		protected abstract void OnDeviceArrival(DeviceType deviceType) { }
+		protected abstract void OnDeviceRemoval(DeviceType deviceType) { }
+		protected abstract void OnAppletEnabled() { }
+		protected abstract void OnAppletDisabled() { }
+		protected abstract void OnCloseConnection() { }
 
 		public void Connect(string friendlyName, bool autostartable, AppletCapabilities appletCaps) {
 			FriendlyName = friendlyName;
