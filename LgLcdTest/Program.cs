@@ -2,44 +2,59 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Windows.Forms;
 using System.Drawing;
+using System.Timers;
+using System.Windows.Forms;
 using LgLcd;
 
 namespace LgLcdTest {
 
-	class ExampleApplet : Applet {
+	class ExampleApplet : Applet, IDisposable {
 
 		protected override void OnDeviceArrival(DeviceType deviceType) {
 			MessageBox.Show("Device arrived " + deviceType.ToString());
-			// Create and open a device
-			Device device = new Device();
 			device.Open(this, DeviceType.Qvga);
-			// Try display sample bitmap
-			Bitmap bmp = (Bitmap)Bitmap.FromFile(@"..\..\qvga_sample.bmp");
-			device.UpdateBitmap(bmp as Bitmap, Priority.Normal, false, false);
+			timer.Interval = 1000;
+			timer.Elapsed += new ElapsedEventHandler(timer_Elapsed);
 		}
-
+		
 		protected override void OnDeviceRemoval(DeviceType deviceType) {
 			MessageBox.Show("Device removed " + deviceType.ToString());
 		}
 
 		protected override void OnAppletEnabled() {
 			MessageBox.Show("Applet enabled");
+			timer.Start();
 		}
 
 		protected override void OnAppletDisabled() {
 			MessageBox.Show("Applet disabled");
+			timer.Stop();
 		}
 
 		protected override void OnCloseConnection() {
 			MessageBox.Show("Connection closed");
+			timer.Stop();
 		}
 
 		protected override void OnConfigure() {
 			MessageBox.Show("Configure");
 		}
 
+		void timer_Elapsed(object sender, ElapsedEventArgs e) {
+			Bitmap bmp = (Bitmap)Bitmap.FromFile(@"..\..\qvga_sample" + counter++ + ".bmp");
+			if (counter > 2)
+				counter = 1;
+			device.UpdateBitmap(bmp, Priority.Alert, false, false);
+		}
+
+		public void Dispose() {
+			timer.Dispose();
+		}
+
+		private int counter = 1;
+		private Device device = new Device();
+		private System.Timers.Timer timer = new System.Timers.Timer();
 	}
 	
 	class Program {

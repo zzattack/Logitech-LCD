@@ -107,7 +107,7 @@ namespace LgLcd {
 			Priority priority,
 			bool syncUpdate,
 			bool syncCompleteWithinFrame) {
-			if (!Opened)	{
+			if (!Opened) {
 				throw new Exception("Not opened.");
 			}
 			if (bitmap.Width != BitmapWidth || bitmap.Height != BitmapHeight) {
@@ -134,8 +134,7 @@ namespace LgLcd {
 					throw new Exception("The specified device has been disconnected.");
 				}
 				else if (error == LgLcd.ReturnValue.ErrorAccessDenied) {
-					throw new Exception(
-						"Synchronous operation was not displayed on the LCD within the frame interval (30 ms).");
+					throw new Exception("Synchronous operation was not displayed on the LCD within the frame interval (30 ms).");
 				}
 				throw new Win32Exception((int)error);
 			}
@@ -177,12 +176,11 @@ namespace LgLcd {
 			if (error != LgLcd.ReturnValue.ErrorSuccess) {
 				throw new Win32Exception((int)error);
 			}
+			// Reset device handle
+			handle = LgLcd.InvalidDevice;
 		}
 
-		private int OnSoftButtons(
-			int device,
-			LgLcd.SoftButtonFlags buttons,
-			IntPtr context) {
+		private int OnSoftButtons(int device, LgLcd.SoftButtonFlags buttons, IntPtr context) {
 			switch (buttons) {
 				case LgLcd.SoftButtonFlags.Left:
 					if (Left != null)

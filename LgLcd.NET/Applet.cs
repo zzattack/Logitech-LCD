@@ -41,10 +41,7 @@ namespace LgLcd {
 			};
 		}
 
-		public void Connect(
-			string friendlyName,
-			bool autostartable,
-			AppletCapabilities appletCaps) {
+		public void Connect(string friendlyName, bool autostartable, AppletCapabilities appletCaps) {
 			if (Connected) {
 				throw new Exception("Already connected.");
 			}
