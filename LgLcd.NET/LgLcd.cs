@@ -160,7 +160,7 @@ namespace LgLcdNET {
 		public object Context;
 	}
 
-	[StructLayout(LayoutKind.Sequential, Pack = 8)]
+	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto, Pack = 8)]
 	public struct ConnectContext {
 		public string AppFriendlyName;
 		public bool IsPersistent;
@@ -169,7 +169,7 @@ namespace LgLcdNET {
 		public int Connection;
 	}
 
-	[StructLayout(LayoutKind.Sequential, Pack = 8)]
+	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto, Pack = 8)]
 	public struct ConnectContextEx {
 		public string AppFriendlyName;
 		public bool IsPersistent;
@@ -204,8 +204,13 @@ namespace LgLcdNET {
 	}
 
 	[StructLayout(LayoutKind.Sequential, Pack = 8)]
-	public struct LgBitmap { // Renamed due to name-clash with System.Drawing.Bitmap
+	// Renamed due to name-clash with System.Drawing.Bitmap
+	// Changed to be of class type because the marshaller chokes on big structs
+	public class LgBitmap {
 		public BitmapFormat Format;
+		// SizeConst is the biggest possible bitmap size,
+		// without it the marshaller fails causing exceptions.
+		[MarshalAs(UnmanagedType.ByValArray, SizeConst = 307200)]
 		public byte[] Pixels;
 	}
 
