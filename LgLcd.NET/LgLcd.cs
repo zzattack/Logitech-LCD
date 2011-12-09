@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace LgLcdNET {
 
-	#region Enumerations/Constants
+	#region Enumerations
 
 	[Flags]
 	public enum AppletCapabilities {
@@ -219,6 +219,10 @@ namespace LgLcdNET {
 	#region Functions
 
 	public static class LgLcd {
+
+		// Used by UpdateBitmap
+		public static readonly uint SyncUpdate = 0x80000000;
+		public static readonly uint SyncCompleteWithinFrame = 0xC0000000;
 
 		[DllImport("lglcd.dll", EntryPoint = "lgLcdInit")]
 		public static extern ReturnValue Init();

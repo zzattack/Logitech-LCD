@@ -101,8 +101,8 @@ namespace LgLcdNET
 				Handle,
 				lgBitmap,
 				(uint)priority
-				| (syncUpdate ? 0x80000000 : 0)
-				| (syncCompleteWithinFrame ? 0xC0000000 : 0));
+				| (syncUpdate ? LgLcd.SyncUpdate : 0)
+				| (syncCompleteWithinFrame ? LgLcd.SyncCompleteWithinFrame : 0));
 			if (error != ReturnValue.ErrorSuccess)
 			{
 				if (error == ReturnValue.ErrorServiceNotActive)
