@@ -84,7 +84,7 @@ namespace LgLcdNET
 				Type == DeviceType.Qvga ? PixelFormat.Format32bppArgb : PixelFormat.Format8bppIndexed);
 			Marshal.Copy(bitmapData.Scan0, lgBitmap.Pixels, 0, lgBitmap.Pixels.Length);
 			bitmap.UnlockBits(bitmapData);
-			LgLcd.UpdateBitmap(Handle, lgBitmap, Priority.Normal);
+			LgLcd.UpdateBitmap(Handle, lgBitmap, priority);
 		}
 
 		public SoftButtonFlags ReadSoftButtons()
