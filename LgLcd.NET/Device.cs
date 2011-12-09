@@ -67,7 +67,7 @@ namespace LgLcdNET
 			Handle = ctx.Device;
 		}
 
-		public void UpdateBitmap(Bitmap bitmap, Priority priority)
+		public void UpdateBitmap(Bitmap bitmap, Priority priority, bool syncUpdate, bool syncCompleteWithinFrame)
 		{
 			if (bitmap.Width != BitmapWidth || bitmap.Height != BitmapHeight)
 			{
@@ -84,7 +84,12 @@ namespace LgLcdNET
 				Type == DeviceType.Qvga ? PixelFormat.Format32bppArgb : PixelFormat.Format8bppIndexed);
 			Marshal.Copy(bitmapData.Scan0, lgBitmap.Pixels, 0, lgBitmap.Pixels.Length);
 			bitmap.UnlockBits(bitmapData);
-			LgLcd.UpdateBitmap(Handle, lgBitmap, priority);
+			LgLcd.UpdateBitmap(
+				Handle,
+				lgBitmap,
+				(uint)priority
+				| (syncUpdate ? 0x80000000 : 0)
+				| (syncCompleteWithinFrame ? 0xC0000000 : 0));
 		}
 
 		public SoftButtonFlags ReadSoftButtons()

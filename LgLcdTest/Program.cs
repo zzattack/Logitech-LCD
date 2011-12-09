@@ -10,7 +10,6 @@ namespace LgLcdTest
 {
 	class Program
 	{
-
 		class ExampleApplet : LgLcdNET.Applet
 		{
 			protected override void OnDeviceArrival(DeviceType deviceType)
@@ -48,7 +47,6 @@ namespace LgLcdTest
 			{
 				MessageBox.Show("Configure");
 			}
-
 		}
 
 		static void Main(string[] args)

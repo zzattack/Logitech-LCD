@@ -261,7 +261,7 @@ namespace LgLcdNET {
 		public static extern ReturnValue ReadSoftButtons(int device, out SoftButtonFlags buttons);
 
 		[DllImport("lglcd.dll", EntryPoint = "lgLcdUpdateBitmap")]
-		public static extern ReturnValue UpdateBitmap(int device, LgBitmap bitmap, Priority priority);
+		public static extern ReturnValue UpdateBitmap(int device, LgBitmap bitmap, uint priority);
 
 		[DllImport("lglcd.dll", EntryPoint = "lgLcdSetAsLCDForegroundApp")] // the flag is either 1 or 0
 		public static extern ReturnValue SetAsLCDForegroundApp(int device, bool foregroundYesNoFlag);
