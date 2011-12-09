@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Drawing;
 using System.Timers;
 using System.Windows.Forms;
@@ -45,7 +42,8 @@ namespace LgLcdTest {
 			Bitmap bmp = (Bitmap)Bitmap.FromFile(@"..\..\qvga_sample" + counter++ + ".bmp");
 			if (counter > 2)
 				counter = 1;
-			device.UpdateBitmap(bmp, Priority.Alert, false, false);
+			device.UpdateBitmap(bmp, Priority.Normal, false, false);
+			device.SetAsLCDForegroundApp(true);
 		}
 
 		public void Dispose() {

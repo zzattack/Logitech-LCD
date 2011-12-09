@@ -124,8 +124,7 @@ namespace LgLcd {
 		#region Structures
 
 		[StructLayout(LayoutKind.Sequential, Pack = 8)]
-		public struct DeviceDesc
-		{
+		public struct DeviceDesc {
 			public int Width;
 			public int Height;
 			public int Bpp;
@@ -133,8 +132,7 @@ namespace LgLcd {
 		}
 
 		[StructLayout(LayoutKind.Sequential, Pack = 8)]
-		public struct DeviceDescEx
-		{
+		public struct DeviceDescEx {
 			public DeviceFamilyFlags FamilyId;
 			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
 			public string DisplayName;

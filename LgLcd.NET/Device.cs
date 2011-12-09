@@ -58,6 +58,10 @@ namespace LgLcd {
 		public event EventHandler Down;
 		public event EventHandler Menu;
 
+		public Device() {
+			SoftButtonsDelegate = new LgLcd.SoftButtonsDelegate(OnSoftButtons);
+		}
+
 		public void Open(Applet applet, DeviceType type) {
 			if (Opened) {
 				throw new Exception("Already opened.");
@@ -84,7 +88,7 @@ namespace LgLcd {
 				DeviceType = (LgLcd.DeviceType)Type,
 				OnSoftbuttonsChanged = new LgLcd.SoftbuttonsChangedContext() {
 					Context = IntPtr.Zero,
-					OnSoftbuttonsChanged = new LgLcd.SoftButtonsDelegate(OnSoftButtons),
+					OnSoftbuttonsChanged = SoftButtonsDelegate,
 				}
 			};
 			LgLcd.ReturnValue error = LgLcd.OpenByType(ref ctx);
@@ -213,5 +217,7 @@ namespace LgLcd {
 			}
 			return 0;
 		}
+
+		LgLcd.SoftButtonsDelegate SoftButtonsDelegate;
 	}
 }

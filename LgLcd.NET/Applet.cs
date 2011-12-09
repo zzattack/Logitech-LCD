@@ -41,6 +41,11 @@ namespace LgLcd {
 			};
 		}
 
+		public Applet() {
+			ConfigurationDelegate = new LgLcd.ConfigureDelegate(ConfigureHandler);
+			NotificationDelegate = new LgLcd.NotificationDelegate(NotifyHandler);			
+		}
+
 		public void Connect(string friendlyName, bool autostartable, AppletCapabilities appletCaps) {
 			if (Connected) {
 				throw new Exception("Already connected.");
@@ -55,11 +60,11 @@ namespace LgLcd {
 				IsPersistent = true, // deprecated and ignored as of 3.00
 				OnConfigure = new LgLcd.ConfigureContext() {
 					Context = IntPtr.Zero,
-					OnConfigure = new LgLcd.ConfigureDelegate(ConfigureHandler),
+					OnConfigure = ConfigurationDelegate,
 				},
 				OnNotify = new LgLcd.NotificationContext() {
 					Context = IntPtr.Zero,
-					OnNotification = new LgLcd.NotificationDelegate(NotifyHandler),
+					OnNotification = NotificationDelegate,
 				},
 				Reserved1 = 0,
 			};
@@ -127,5 +132,8 @@ namespace LgLcd {
 			}
 			return 0;
 		}
+
+		private LgLcd.ConfigureDelegate ConfigurationDelegate;
+		private LgLcd.NotificationDelegate NotificationDelegate;
 	}
 }
