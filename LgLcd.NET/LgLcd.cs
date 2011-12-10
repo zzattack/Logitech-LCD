@@ -147,13 +147,13 @@ namespace LgLcd {
 		[StructLayout(LayoutKind.Sequential, Pack = 8)]
 		public struct NotificationContext {
 			public NotificationDelegate OnNotification;
-			public object Context;
+			public IntPtr Context;
 		}
 
 		[StructLayout(LayoutKind.Sequential, Pack = 8)]
 		public struct ConfigureContext {
 			public ConfigureDelegate OnConfigure;
-			public object Context;
+			public IntPtr Context;
 		}
 
 		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto, Pack = 8)]
@@ -180,7 +180,7 @@ namespace LgLcd {
 		[StructLayout(LayoutKind.Sequential, Pack = 8)]
 		public struct SoftbuttonsChangedContext {
 			public SoftButtonsDelegate OnSoftbuttonsChanged;
-			public object Context;
+			public IntPtr Context;
 		}
 
 		[StructLayout(LayoutKind.Sequential, Pack = 8)]
