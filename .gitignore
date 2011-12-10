@@ -5,7 +5,6 @@
 *.exe
 *.manifest
 *.pdb
-*.txt
 *.tlog
 *.obj
 *.exp

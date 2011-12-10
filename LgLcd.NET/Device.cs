@@ -66,6 +66,16 @@ namespace LgLcd {
 			if (Opened) {
 				throw new Exception("Already opened.");
 			}
+			if (!applet.Connected) {
+				throw new Exception("Applet must be connected to LCDMon.");
+			}
+			if (type != DeviceType.Monochrome && type != DeviceType.Qvga) {
+				throw new InvalidEnumArgumentException();
+			}
+			if ((type == DeviceType.Monochrome && applet.CapabilitiesSupported != AppletCapabilities.Monochrome)
+				|| (type == DeviceType.Qvga && applet.CapabilitiesSupported != AppletCapabilities.Qvga)) {
+				throw new Exception("The applet does not support the device type \"" + type.ToString() + "\".");
+			}
 			if (type != DeviceType.Monochrome && type != DeviceType.Qvga) {
 				throw new InvalidEnumArgumentException();
 			}
@@ -93,12 +103,7 @@ namespace LgLcd {
 			};
 			LgLcd.ReturnValue error = LgLcd.OpenByType(ref ctx);
 			if (error != LgLcd.ReturnValue.ErrorSuccess) {
-				if (error == LgLcd.ReturnValue.ErrorInvalidParameter) {
-					// Either ctx is NULL, or ctx->connection is not valid,
-					// or ctx->deviceType does not hold a valid device type.
-					throw new Exception("The applet must be connected.");
-				}
-				else if (error == LgLcd.ReturnValue.ErrorAlreadyExists) {
+				if (error == LgLcd.ReturnValue.ErrorAlreadyExists) {
 					throw new Exception("The specified device has already been opened in the given applet.");
 				}
 				throw new Win32Exception((int)error);
@@ -218,6 +223,6 @@ namespace LgLcd {
 			return 0;
 		}
 
-		LgLcd.SoftButtonsDelegate SoftButtonsDelegate;
+		private LgLcd.SoftButtonsDelegate SoftButtonsDelegate;
 	}
 }
