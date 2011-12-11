@@ -45,6 +45,7 @@
   <ItemGroup>
     <Compile Include="Applet.cs" />
     <Compile Include="Device.cs" />
+    <Compile Include="Hid.cs" />
     <Compile Include="LgLcd.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
