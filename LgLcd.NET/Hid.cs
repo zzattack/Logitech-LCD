@@ -83,9 +83,7 @@ namespace LgLcd {
 		}
 
 		public void Dispose() {
-			if (deviceHandle != IntPtr.Zero) {
-				Kernel32.CloseHandle(deviceHandle);
-			}
+			Kernel32.CloseHandle(deviceHandle);
 		}
 
 		// Use Open to get device objects

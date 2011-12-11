@@ -81,7 +81,7 @@ namespace LgLcd {
 			}
 			Type = type;
 			if (type == DeviceType.Monochrome) {
-				bitmapFormat = LgLcd.BitmapFormat.QVGAx32;
+				bitmapFormat = LgLcd.BitmapFormat.Monochrome;
 				BitmapWidth = (int)LgLcd.BwBmp.Width;
 				BitmapHeight = (int)LgLcd.BwBmp.Height;
 				BitmapBpp = (int)LgLcd.BwBmp.Bpp;
