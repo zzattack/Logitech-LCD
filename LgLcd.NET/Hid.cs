@@ -2,18 +2,18 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using System.IO;
 
 namespace LgLcd {
 
-	public class Test
-	{
-		public Test()
-		{
+	public class Test {
+		public Test() {
 			var dev = HidDevice.Open(0x046D, 0xc229)[0];
+			var caps = dev.GetCaps();
 			byte[] buff = new byte[258];
 			buff[0] = 0x7;
-			bool b = dev.GetFeature(buff);
-			
+			bool b = dev.SetFeature(buff);
+			dev.GetFeature(buff);
 		}
 	}
 
@@ -23,15 +23,15 @@ namespace LgLcd {
 		public int ProductId { get; private set; }
 
 		public bool GetFeature(byte[] reportBuffer) {
-			return Hid.HidD_GetFeature(deviceHandle, ref reportBuffer, reportBuffer.Length);
+			return Hid.HidD_GetFeature(deviceHandle, reportBuffer, reportBuffer.Length);
 		}
 
 		public bool SetFeature(byte[] reportBuffer) {
 			return Hid.HidD_SetFeature(deviceHandle, reportBuffer, reportBuffer.Length);
 		}
-		
+
 		public bool GetInputReport(byte[] reportBuffer) {
-			return Hid.HidD_GetInputReport(deviceHandle, ref reportBuffer, reportBuffer.Length);	
+			return Hid.HidD_GetInputReport(deviceHandle, ref reportBuffer, reportBuffer.Length);
 		}
 
 		public bool SetOutputReport(byte[] reportBuffer) {
@@ -59,31 +59,24 @@ namespace LgLcd {
 			SetupApi.SpDeviceInterfaceData did = new SetupApi.SpDeviceInterfaceData();
 			did.Size = Marshal.SizeOf(did);
 			int i = 0;
-			while (SetupApi.SetupDiEnumDeviceInterfaces(
-				deviceInfoSet,
-				IntPtr.Zero,
-				ref hidClassGuid,
-				i++,
-				ref did)) {
+			while (SetupApi.SetupDiEnumDeviceInterfaces(deviceInfoSet, IntPtr.Zero, ref hidClassGuid, i++, ref did)) {
 				// Obtain DevicePath
 				var didd = new SetupApi.SpDeviceInterfaceDetailData();
-				didd.Size = 4 + Marshal.SystemDefaultCharSize;
-				if (SetupApi.SetupDiGetDeviceInterfaceDetail(
-					deviceInfoSet,
-					ref did,
-					ref didd,
-					Marshal.SizeOf(didd),
-					IntPtr.Zero,
-					IntPtr.Zero)) {
+				if (IntPtr.Size == 8) // for 64 bit operating systems
+					didd.Size = 8;
+				else
+					didd.Size = 4 + Marshal.SystemDefaultCharSize; // for 32 bit systems
+				if (SetupApi.SetupDiGetDeviceInterfaceDetail(deviceInfoSet, ref did, ref didd, Marshal.SizeOf(didd), IntPtr.Zero, IntPtr.Zero)) {
 					// Write access causes failure if not running elevated.
 					IntPtr hDevice = Kernel32.CreateFile(
 						didd.DevicePath,
-						Kernel32.GenericAccess.Read,
-						Kernel32.FileShareMode.ShareRead | Kernel32.FileShareMode.ShareWrite,
+						FileAccess.Read, // we just need read
+						FileShare.ReadWrite, // and we don't want to restrict others from write
 						IntPtr.Zero,
-						Kernel32.CreationDisposition.OpenExisting,
-						Kernel32.FileAttribute.Overlapped,
+						FileMode.Open,
+						FileAttributes.Device,
 						IntPtr.Zero);
+
 					if (hDevice != Kernel32.InvalidHandleValue) {
 						Hid.DeviceAttributes attributes;
 						if (Hid.HidD_GetAttributes(hDevice, out attributes)) {
@@ -94,8 +87,8 @@ namespace LgLcd {
 						}
 						// Close the wrong device handle
 						Kernel32.CloseHandle(hDevice);
-					}						
-				}				
+					}
+				}
 			}
 			// Free the device-information-set.
 			SetupApi.SetupDiDestroyDeviceInfoList(deviceInfoSet);
@@ -174,12 +167,12 @@ namespace LgLcd {
 		public static extern bool HidD_SetFeature(
 			IntPtr hidDeviceObject,
 			byte[] reportBuffer,
-			int reportBufferLength);
+			long reportBufferLength);
 
 		[DllImport("hid.dll")]
 		public static extern bool HidD_GetFeature(
 			IntPtr hidDeviceObject,
-			ref byte[] reportBuffer,
+			byte[] reportBuffer,
 			int reportBufferLength);
 
 		[DllImport("hid.dll")]
@@ -241,7 +234,7 @@ namespace LgLcd {
 			public IntPtr Reserved;
 		}
 
-		[StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Unicode)]
+		[StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Auto)]
 		public struct SpDeviceInterfaceDetailData {
 			public int Size;
 			// SizeConst is MaxPath
@@ -295,49 +288,16 @@ namespace LgLcd {
 
 		#endregion
 
-		#region Enumerations
-
-		[Flags]
-		public enum GenericAccess : uint {
-			All = 0x80000000,
-			Execute = 0x40000000,
-			Read = 0x20000000,
-			Write = 0x10000000,
-		}
-
-		[Flags]
-		public enum FileShareMode {
-			ShareNot = 0,
-			ShareRead = 1,
-			ShareWrite = 2,
-			ShareDelete = 4,
-		}
-
-		public enum CreationDisposition {
-			CreateNew = 1,
-			CreateAlways = 2,
-			OpenExisting = 3,
-			OpenAlways = 4,
-			TruncateExisting = 5,
-		}
-
-		public enum FileAttribute {
-			Overlapped = 0x40000000,
-			// Theres more, way more
-		}
-
-		#endregion
-
 		#region Functions
 
 		[DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
 		public static extern IntPtr CreateFile(
 			string fileName,
-			GenericAccess desiredAccess,
-			FileShareMode shareMode,
+			FileAccess desiredAccess,
+			FileShare shareMode,
 			IntPtr securityAttributes, // struct but optional
-			CreationDisposition creationDisposition,
-			FileAttribute flagsAndAttributes,
+			FileMode mode,
+			FileAttributes flagsAndAttributes,
 			IntPtr templateFile);
 
 		[DllImport("kernel32.dll", SetLastError = true)]
