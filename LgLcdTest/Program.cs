@@ -58,7 +58,6 @@ namespace LgLcdTest {
 	class Program {
 		static void Main(string[] args) {
 			Wtf.X();
-
 			// Create and connect applet
 			ExampleApplet applet = new ExampleApplet();
 			applet.Connect("My Applet", false, AppletCapabilities.Qvga);

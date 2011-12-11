@@ -4,14 +4,7 @@ using System.ComponentModel;
 using System.Collections.Generic;
 
 namespace LgLcd {
-
-	// For testing
-	public static class Wtf {
-		public static void X() {
-			HidDevice.Open(0, 0);
-		}
-	}
-
+	
 	internal class HidDevice : IDisposable {
 
 		public int VendorId { get; private set; }
@@ -34,49 +27,74 @@ namespace LgLcd {
 			// Obtain handle to an opaque device-information-set
 			// describing device interface supported by all HID
 			// collections currently installed in the system.
-			IntPtr deviceInfoSet = SetupApi.SetupDiGetClassDevs(ref hidClassGuid, null, IntPtr.Zero, SetupApi.DiGetFlags.DeviceInterface | SetupApi.DiGetFlags.Present);
-
-			if (deviceInfoSet.ToInt32() == -1)
-				throw new Win32Exception(Marshal.GetLastWin32Error());
-
+			IntPtr deviceInfoSet = SetupApi.SetupDiGetClassDevs(
+				ref hidClassGuid,
+				null,
+				IntPtr.Zero,
+				SetupApi.DiGetFlags.DeviceInterface | SetupApi.DiGetFlags.Present);
+			if (deviceInfoSet == Kernel32.InvalidHandleValue) {
+				throw new Win32Exception();
+			}
 			// Retrieve all available interface information.
 			SetupApi.SpDeviceInterfaceData did = new SetupApi.SpDeviceInterfaceData();
 			did.Size = Marshal.SizeOf(did);
 			int i = 0;
-			while (SetupApi.SetupDiEnumDeviceInterfaces(deviceInfoSet, IntPtr.Zero, ref hidClassGuid, i++, ref did)) {
+			while (SetupApi.SetupDiEnumDeviceInterfaces(
+				deviceInfoSet,
+				IntPtr.Zero,
+				ref hidClassGuid,
+				i++,
+				ref did)) {
 				// Obtain DevicePath
-				int requiredSize;
-				SetupApi.SetupDiGetDeviceInterfaceDetailSize(deviceInfoSet, ref did, IntPtr.Zero, 0, out requiredSize, IntPtr.Zero);
-
 				var didd = new SetupApi.SpDeviceInterfaceDetailData();
-				didd.Size = 4 + Marshal.SystemDefaultCharSize; // Marshal.SizeOf fucks up cuz of buffer vs pointer to buffer
-
-				if (!SetupApi.SetupDiGetDeviceInterfaceDetail(deviceInfoSet, ref did, ref didd, Marshal.SizeOf(didd), IntPtr.Zero, IntPtr.Zero))
-					throw new Win32Exception(Marshal.GetLastWin32Error());
-
-				// todo: get some more info
-				HidDevice hid = null;
-
-				deviceList.Add(hid);
+				didd.Size = 4 + Marshal.SystemDefaultCharSize;
+				if (SetupApi.SetupDiGetDeviceInterfaceDetail(
+					deviceInfoSet,
+					ref did,
+					ref didd,
+					Marshal.SizeOf(didd),
+					IntPtr.Zero,
+					IntPtr.Zero)) {
+					// Write access causes failure if not running elevated.
+					IntPtr hDevice = Kernel32.CreateFile(
+						didd.DevicePath,
+						Kernel32.GenericAccess.Read,
+						Kernel32.FileShareMode.ShareRead | Kernel32.FileShareMode.ShareWrite,
+						IntPtr.Zero,
+						Kernel32.CreationDisposition.OpenExisting,
+						Kernel32.FileAttribute.Overlapped,
+						IntPtr.Zero);
+					if (hDevice != Kernel32.InvalidHandleValue) {
+						Hid.DeviceAttributes attributes;
+						if (Hid.HidD_GetAttributes(hDevice, out attributes)) {
+							if (attributes.VendorId == vendorId && attributes.ProductId == productId) {
+								deviceList.Add(new HidDevice(vendorId, productId));
+								continue;
+							}
+						}
+						// Close the wrong device handle
+						Kernel32.CloseHandle(hDevice);
+					}						
+				}				
 			}
-
 			// Free the device-information-set.
 			SetupApi.SetupDiDestroyDeviceInfoList(deviceInfoSet);
-
 			return deviceList;
 		}
 
 		public void Dispose() {
 			if (deviceHandle != IntPtr.Zero) {
 				Kernel32.CloseHandle(deviceHandle);
-				deviceHandle = IntPtr.Zero;
 			}
 		}
 
-		// Use Open
-		private HidDevice() { }
+		// Use Open to get device objects
+		private HidDevice(int vendorId, int productId) {
+			VendorId = vendorId;
+			ProductId = productId;
+		}
 
-		private IntPtr deviceHandle = IntPtr.Zero;
+		private IntPtr deviceHandle;
 	}
 
 	// Hid.dll definitions
@@ -152,19 +170,11 @@ namespace LgLcd {
 			public IntPtr Reserved;
 		}
 
-		public struct SpDeviceInfoData {
-			public int Size;
-			public Guid ClassGuid;
-			public int DevInst;
-			public IntPtr Reserved;
-		}
-
-		// Class because nullable semantics are required
 		[StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Unicode)]
 		public struct SpDeviceInterfaceDetailData {
 			public int Size;
 			// SizeConst is MaxPath
-			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
+			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
 			public string DevicePath;
 		}
 
@@ -179,7 +189,7 @@ namespace LgLcd {
 			IntPtr hWndParent,
 			DiGetFlags flags);
 
-		// Delete device info set returned by SetupDiGetClassDevs
+		// Free device info set returned by SetupDiGetClassDevs
 		[DllImport("setupapi.dll")]
 		public static extern bool SetupDiDestroyDeviceInfoList(
 			IntPtr DeviceInfoSet);
@@ -191,15 +201,6 @@ namespace LgLcd {
 			ref Guid interfaceClassGuid,
 			int memberIndex,
 			ref SpDeviceInterfaceData deviceInterfaceData);
-
-		[DllImport("setupapi.dll", EntryPoint = "SetupDiGetDeviceInterfaceDetail", SetLastError = true)]
-		public static extern bool SetupDiGetDeviceInterfaceDetailSize(
-			IntPtr deviceInfoSet,
-			ref SpDeviceInterfaceData deviceInterfaceData,
-			IntPtr unusedDeviceInterfaceDetailData,
-			int unusedDeviceInterfaceDetailDataSize,
-			out int requiredSize,
-			IntPtr unusedDeviceInfoData); // actually struct ref but optional
 
 		[DllImport("setupapi.dll", SetLastError = true, CharSet = CharSet.Auto)]
 		public static extern bool SetupDiGetDeviceInterfaceDetail(
@@ -216,16 +217,56 @@ namespace LgLcd {
 
 	// Kernel32.dll definitions
 	internal static class Kernel32 {
+
+		#region Constants
+
+		public static readonly IntPtr InvalidHandleValue = (IntPtr)(-1);
+
+		#endregion
+
+		#region Enumerations
+
+		[Flags]
+		public enum GenericAccess : uint {
+			All = 0x80000000,
+			Execute = 0x40000000,
+			Read = 0x20000000,
+			Write = 0x10000000,
+		}
+
+		[Flags]
+		public enum FileShareMode {
+			ShareNot = 0,
+			ShareRead = 1,
+			ShareWrite = 2,
+			ShareDelete = 4,
+		}
+
+		public enum CreationDisposition {
+			CreateNew = 1,
+			CreateAlways = 2,
+			OpenExisting = 3,
+			OpenAlways = 4,
+			TruncateExisting = 5,
+		}
+
+		public enum FileAttribute {
+			Overlapped = 0x40000000,
+			// Theres more, way more
+		}
+
+		#endregion
+
 		#region Functions
 
 		[DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
 		public static extern IntPtr CreateFile(
 			string fileName,
-			int desiredAccess,
-			int shareMode,
+			GenericAccess desiredAccess,
+			FileShareMode shareMode,
 			IntPtr securityAttributes, // struct but optional
-			int creationDisposition,
-			int flagsAndAttributes,
+			CreationDisposition creationDisposition,
+			FileAttribute flagsAndAttributes,
 			IntPtr templateFile);
 
 		[DllImport("kernel32.dll", SetLastError = true)]
