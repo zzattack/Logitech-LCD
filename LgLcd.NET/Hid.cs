@@ -1,21 +1,41 @@
 ﻿using System;
-using System.Runtime.InteropServices;
-using System.ComponentModel;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
 
 namespace LgLcd {
-	
+
+	public class Test
+	{
+		public Test()
+		{
+			var dev = HidDevice.Open(0x046D, 0xc229)[0];
+			byte[] buff = new byte[258];
+			buff[0] = 0x7;
+			bool b = dev.GetFeature(buff);
+			
+		}
+	}
+
 	internal class HidDevice : IDisposable {
 
 		public int VendorId { get; private set; }
 		public int ProductId { get; private set; }
 
-		bool GetFeature(ref byte[] reportBuffer) {
+		public bool GetFeature(byte[] reportBuffer) {
 			return Hid.HidD_GetFeature(deviceHandle, ref reportBuffer, reportBuffer.Length);
 		}
 
 		public bool SetFeature(byte[] reportBuffer) {
-			return Hid.HidD_SetFeature(deviceHandle, ref reportBuffer, reportBuffer.Length);
+			return Hid.HidD_SetFeature(deviceHandle, reportBuffer, reportBuffer.Length);
+		}
+		
+		public bool GetInputReport(byte[] reportBuffer) {
+			return Hid.HidD_GetInputReport(deviceHandle, ref reportBuffer, reportBuffer.Length);	
+		}
+
+		public bool SetOutputReport(byte[] reportBuffer) {
+			return Hid.HidD_SetOutputReport(deviceHandle, reportBuffer, reportBuffer.Length);
 		}
 
 		public static List<HidDevice> Open(int vendorId, int productId) {
@@ -68,7 +88,7 @@ namespace LgLcd {
 						Hid.DeviceAttributes attributes;
 						if (Hid.HidD_GetAttributes(hDevice, out attributes)) {
 							if (attributes.VendorId == vendorId && attributes.ProductId == productId) {
-								deviceList.Add(new HidDevice(vendorId, productId));
+								deviceList.Add(new HidDevice(hDevice, vendorId, productId));
 								continue;
 							}
 						}
@@ -82,17 +102,28 @@ namespace LgLcd {
 			return deviceList;
 		}
 
+		public Hid.Caps GetCaps() {
+			Hid.Caps caps;
+			Hid.HidP_GetCaps(preparsedData, out caps);
+			return caps;
+		}
+
 		public void Dispose() {
 			Kernel32.CloseHandle(deviceHandle);
+			Hid.HidD_FreePreparsedData(preparsedData);
+			Hid.HidD_FreePreparsedData(preparsedData);
 		}
 
 		// Use Open to get device objects
-		private HidDevice(int vendorId, int productId) {
+		private HidDevice(IntPtr handle, int vendorId, int productId) {
+			deviceHandle = handle;
 			VendorId = vendorId;
 			ProductId = productId;
+			Hid.HidD_GetPreparsedData(handle, out preparsedData);
 		}
 
 		private IntPtr deviceHandle;
+		private IntPtr preparsedData;
 	}
 
 	// Hid.dll definitions
@@ -105,6 +136,25 @@ namespace LgLcd {
 			public ushort VendorId;
 			public ushort ProductId;
 			public ushort VersionNumber;
+		}
+
+		public struct Caps {
+			public ushort Usage;
+			public ushort UsagePage;
+			public ushort InputReportByteLength;
+			public ushort OutputReportByteLength;
+			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 17)]
+			public ushort[] Reserved;
+			public ushort NumberLinkCollectionNodes;
+			public ushort NumberInputButtonCaps;
+			public ushort NumberInputValueCaps;
+			public ushort NumberInputDataIndices;
+			public ushort NumberOutputButtonCaps;
+			public ushort NumberOutputValueCaps;
+			public ushort NumberOutputDataIndices;
+			public ushort NumberFeatureButtonCaps;
+			public ushort NumberFeatureValueCaps;
+			public ushort NumberFeatureDataIndices;
 		}
 
 		#endregion
@@ -123,13 +173,36 @@ namespace LgLcd {
 		[DllImport("hid.dll")]
 		public static extern bool HidD_SetFeature(
 			IntPtr hidDeviceObject,
-			ref byte[] reportBuffer,
+			byte[] reportBuffer,
 			int reportBufferLength);
 
 		[DllImport("hid.dll")]
 		public static extern bool HidD_GetFeature(
 			IntPtr hidDeviceObject,
 			ref byte[] reportBuffer,
+			int reportBufferLength);
+
+		[DllImport("hid.dll")]
+		public static extern bool HidD_GetPreparsedData(
+			IntPtr hidDeviceObject,
+			out IntPtr preparsedData);
+
+		[DllImport("hid.dll")]
+		public static extern bool HidD_FreePreparsedData(IntPtr preparsedData);
+
+		[DllImport("hid.dll")]
+		public static extern int HidP_GetCaps(IntPtr preparsedData, out Hid.Caps caps);
+
+		[DllImport("hid.dll")]
+		public static extern bool HidD_GetInputReport(
+			IntPtr hidDeviceObject,
+			ref byte[] reportBuffer,
+			int reportBufferLength);
+
+		[DllImport("hid.dll")]
+		public static extern bool HidD_SetOutputReport(
+			IntPtr hidDeviceObject,
+			byte[] reportBuffer,
 			int reportBufferLength);
 
 		#endregion
