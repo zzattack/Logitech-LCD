@@ -6,6 +6,8 @@ using LgLcd;
 
 namespace LgLcdTest {
 
+
+
 	class ExampleApplet : Applet, IDisposable {
 
 		protected override void OnDeviceArrival(DeviceType deviceType) {

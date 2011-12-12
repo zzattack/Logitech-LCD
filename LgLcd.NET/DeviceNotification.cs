@@ -1,0 +1,139 @@
+﻿using System;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
+
+namespace LgLcd {
+
+	internal class DeviceEventArgs : EventArgs {
+		public string DevicePath { get; private set; }
+		public DeviceEventArgs(string devicePath) {
+			DevicePath = devicePath;
+		}
+	}
+
+	internal class DeviceEventDispatcher : NativeWindow {
+		
+		public event EventHandler<DeviceEventArgs> DeviceArrival;
+		public event EventHandler<DeviceEventArgs> DeviceRemoval;
+
+		public DeviceEventDispatcher(IntPtr hWnd, Guid deviceClass) {
+			base.AssignHandle(hWnd);
+			var filter = new User32.BroadcastHdr();
+			filter.Size = Marshal.SizeOf(filter);
+			filter.DeviceType = User32.DeviceType.Interface;
+			filter.Interface = new User32.BroadcastDeviceInterface();
+			filter.Interface.DeviceClass = deviceClass;
+			notificationHandle = User32.RegisterDeviceNotification(base.Handle, filter, 0);
+		}
+
+		~DeviceEventDispatcher() {
+			User32.UnregisterDeviceNotification(notificationHandle);
+		}
+
+		protected override void WndProc(ref System.Windows.Forms.Message m) {
+			if (m.Msg == (int)User32.WindowMessage.DeviceChange) {
+				var hdr = (User32.BroadcastHdr)Marshal.PtrToStructure(
+					m.LParam,
+					typeof(User32.BroadcastHdr));
+				switch (m.WParam.ToInt32()) {
+					case (int)User32.DeviceEvent.DeviceArrival:
+						OnDeviceArrived(hdr.Interface.Name);
+						break;					
+					case (int)User32.DeviceEvent.DeviceRemoveComplete:
+						OnDeviceRemoval(hdr.Interface.Name);
+						break;
+				}
+				base.WndProc(ref m);
+			}
+		}
+
+		/// <summary>
+		/// Fires when a compatible device is physically added to the system.
+		/// </summary>
+		private void OnDeviceArrived(string devicePath) {
+			if (DeviceArrival != null)
+				DeviceArrival(this, new DeviceEventArgs(devicePath));
+		}
+
+		/// <summary>
+		/// Fires when a compatible device is physically removed from the system.
+		/// </summary>
+		private void OnDeviceRemoval(string devicePath) {
+			if (DeviceRemoval != null)
+				DeviceRemoval(this, new DeviceEventArgs(devicePath));
+		}
+
+		IntPtr notificationHandle;
+
+	}
+	
+	// User32.dll definitions
+	internal static class User32  {
+
+		#region Enumerations
+
+		public enum DeviceType {
+			Oem = 0,
+			Volume = 2,
+			Port = 3,
+			Interface = 5,
+			Handle = 6,			
+		}
+
+		[Flags]
+		public enum DeviceNotificationFlags {
+			WindowHandle,
+			ServiceHandle,
+			AllInterfaceClasses = 4,
+		}
+
+		public enum WindowMessage {
+			DeviceChange = 0x0219,
+		}
+
+		public enum DeviceEvent {
+			DeviceArrival = 0x8000,
+			DeviceRemoveComplete = 0x8004,
+		}
+
+		#endregion
+
+		#region Structures
+
+		[DefaultCharSet(CharSet.Auto)]
+		public struct BroadcastDeviceInterface {
+			public Guid DeviceClass;
+			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
+			public string Name;
+		}
+
+		[StructLayout(LayoutKind.Explicit)]
+		public struct BroadcastHdr {
+			[FieldOffset(0)]
+			public int Size;
+			[FieldOffset(4)]
+			public DeviceType DeviceType;
+			[FieldOffset(8)]
+			public int Reserved;
+			[FieldOffset(12)]
+			public BroadcastDeviceInterface Interface;
+		}
+
+		#endregion
+
+		#region Functions
+
+		[DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+		public static extern IntPtr RegisterDeviceNotification(
+			IntPtr recipient,
+			BroadcastHdr filter,
+			DeviceNotificationFlags flags);
+
+		[DllImport("user32.dll", SetLastError = true)]
+		public static extern bool UnregisterDeviceNotification(IntPtr handle);
+
+		#endregion
+
+	}
+
+}

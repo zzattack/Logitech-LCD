@@ -3,8 +3,8 @@ using System.Runtime.InteropServices;
 
 namespace LgLcd {
 
-	internal static class LgLcd
-	{
+	internal static class LgLcd {
+
 		#region Enumerations
 
 		[Flags]
@@ -277,5 +277,6 @@ namespace LgLcd {
 		public static extern ReturnValue SetAsLCDForegroundApp(int device, bool foregroundYesNoFlag);
 
 		#endregion
+
 	}
 }
