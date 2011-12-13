@@ -28,33 +28,44 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
-			this.label1 = new System.Windows.Forms.Label();
+			this.components = new System.ComponentModel.Container();
+			this.tmrUpdateScreen = new System.Windows.Forms.Timer(this.components);
+			this.lblTime = new System.Windows.Forms.Label();
 			this.SuspendLayout();
 			// 
-			// label1
+			// tmrUpdateScreen
 			// 
-			this.label1.AutoSize = true;
-			this.label1.Location = new System.Drawing.Point(56, 40);
-			this.label1.Name = "label1";
-			this.label1.Size = new System.Drawing.Size(207, 13);
-			this.label1.TabIndex = 0;
-			this.label1.Text = "This is the applets form (displayed on LCD)";
+			this.tmrUpdateScreen.Interval = 1000;
+			this.tmrUpdateScreen.Tick += new System.EventHandler(this.tmrUpdateScreen_Tick);
+			// 
+			// lblTime
+			// 
+			this.lblTime.BackColor = System.Drawing.Color.Transparent;
+			this.lblTime.Font = new System.Drawing.Font("Quartz MS", 36F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.lblTime.ForeColor = System.Drawing.Color.MintCream;
+			this.lblTime.Location = new System.Drawing.Point(3, 69);
+			this.lblTime.Name = "lblTime";
+			this.lblTime.Size = new System.Drawing.Size(314, 72);
+			this.lblTime.TabIndex = 0;
+			this.lblTime.Text = "label1";
+			this.lblTime.TextAlign = System.Drawing.ContentAlignment.TopCenter;
 			// 
 			// AppletForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.BackgroundImage = global::InfoApplet.Properties.Resources.background;
-			this.Controls.Add(this.label1);
+			this.ClientSize = new System.Drawing.Size(320, 240);
+			this.Controls.Add(this.lblTime);
 			this.Name = "AppletForm";
-			this.Size = new System.Drawing.Size(320, 240);
 			this.ResumeLayout(false);
-			this.PerformLayout();
 
 		}
 
 		#endregion
 
-		private System.Windows.Forms.Label label1;
+		private System.Windows.Forms.Timer tmrUpdateScreen;
+		private System.Windows.Forms.Label lblTime;
+
 	}
 }
