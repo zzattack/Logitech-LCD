@@ -3,9 +3,10 @@ using System.Drawing;
 using System.Timers;
 using System.Windows.Forms;
 using LgLcd;
+using LgBackLight;
 
 namespace LgLcdTest {
-
+	
 	class ExampleApplet : Applet, IDisposable {
 
 		protected override void OnDeviceArrival(DeviceType deviceType) {
@@ -57,11 +58,8 @@ namespace LgLcdTest {
 	
 	class Program {
 		static void Main(string[] args) {
-			Test t = new Test();
-			// Create and connect applet
-			ExampleApplet applet = new ExampleApplet();
-			applet.Connect("My Applet", false, AppletCapabilities.Qvga);
-			System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
+			Application.Run(new LgLcdTestForm());
+			BackLight.SetBackLight(Color.Fuchsia);
 		}
 	}
 

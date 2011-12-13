@@ -1,49 +1,44 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Runtime.InteropServices;
 using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
 
-namespace LgLcd {
-
-	public class Test {
-		public Test() {
-			var dev = HidDevice.Open(0x046D, 0xc229)[0];
-			var caps = dev.GetCaps();
-			byte[] buff = new byte[258];
-			buff[0] = 0x7;
-			bool b = dev.SetFeature(buff);
-			dev.GetFeature(buff);
-		}
-	}
+namespace LgBackLight {
 
 	internal class HidDevice : IDisposable {
 
 		public int VendorId { get; private set; }
 		public int ProductId { get; private set; }
+		public int VersionNumber { get; private set; }
+		public string DevicePath { get; private set; }
 
 		public bool GetFeature(byte[] reportBuffer) {
-			return Hid.HidD_GetFeature(deviceHandle, reportBuffer, reportBuffer.Length);
+			return Hid.HidD_GetFeature(handle, reportBuffer, reportBuffer.Length);
 		}
 
 		public bool SetFeature(byte[] reportBuffer) {
-			return Hid.HidD_SetFeature(deviceHandle, reportBuffer, reportBuffer.Length);
+			return Hid.HidD_SetFeature(handle, reportBuffer, reportBuffer.Length);
 		}
 
 		public bool GetInputReport(byte[] reportBuffer) {
-			return Hid.HidD_GetInputReport(deviceHandle, ref reportBuffer, reportBuffer.Length);
+			return Hid.HidD_GetInputReport(handle, ref reportBuffer, reportBuffer.Length);
 		}
 
 		public bool SetOutputReport(byte[] reportBuffer) {
-			return Hid.HidD_SetOutputReport(deviceHandle, reportBuffer, reportBuffer.Length);
+			return Hid.HidD_SetOutputReport(handle, reportBuffer, reportBuffer.Length);
 		}
 
 		public static List<HidDevice> Open(int vendorId, int productId) {
+			return Open(vendorId, new int[] { productId });
+		}
+		
+		public static List<HidDevice> Open(int vendorId, IEnumerable<int> productIds) {
 			// Obtain system-defined GUID for HIDClass devices.
 			Guid hidClassGuid;
 			Hid.HidD_GetHidGuid(out hidClassGuid);
 			var deviceList = new List<HidDevice>();
-
 			// Obtain handle to an opaque device-information-set
 			// describing device interface supported by all HID
 			// collections currently installed in the system.
@@ -62,11 +57,15 @@ namespace LgLcd {
 			while (SetupApi.SetupDiEnumDeviceInterfaces(deviceInfoSet, IntPtr.Zero, ref hidClassGuid, i++, ref did)) {
 				// Obtain DevicePath
 				var didd = new SetupApi.SpDeviceInterfaceDetailData();
-				if (IntPtr.Size == 8) // for 64 bit operating systems
-					didd.Size = 8;
-				else
-					didd.Size = 4 + Marshal.SystemDefaultCharSize; // for 32 bit systems
-				if (SetupApi.SetupDiGetDeviceInterfaceDetail(deviceInfoSet, ref did, ref didd, Marshal.SizeOf(didd), IntPtr.Zero, IntPtr.Zero)) {
+				// On x64 only 8 appears to work while on x86 it must be sizeof (int) + sizeof (TCHAR)
+				didd.Size = IntPtr.Size == 8 ? 8 : didd.Size + Marshal.SystemDefaultCharSize;
+				if (SetupApi.SetupDiGetDeviceInterfaceDetail(
+					deviceInfoSet,
+					ref did,
+					ref didd,
+					Marshal.SizeOf(didd),
+					IntPtr.Zero,
+					IntPtr.Zero)) {
 					// Write access causes failure if not running elevated.
 					IntPtr hDevice = Kernel32.CreateFile(
 						didd.DevicePath,
@@ -76,12 +75,17 @@ namespace LgLcd {
 						FileMode.Open,
 						FileAttributes.Device,
 						IntPtr.Zero);
-
 					if (hDevice != Kernel32.InvalidHandleValue) {
 						Hid.DeviceAttributes attributes;
 						if (Hid.HidD_GetAttributes(hDevice, out attributes)) {
-							if (attributes.VendorId == vendorId && attributes.ProductId == productId) {
-								deviceList.Add(new HidDevice(hDevice, vendorId, productId));
+							if (vendorId == attributes.VendorId && productIds.Contains(attributes.ProductId)) {
+								deviceList.Add(
+									new HidDevice(
+										hDevice,
+										didd.DevicePath,
+										vendorId,
+										attributes.ProductId,
+										attributes.VersionNumber));
 								continue;
 							}
 						}
@@ -95,6 +99,33 @@ namespace LgLcd {
 			return deviceList;
 		}
 
+		public static HidDevice Open(string devicePath) {
+			IntPtr handle = Kernel32.CreateFile(
+				devicePath,
+				FileAccess.Read,
+				FileShare.ReadWrite,
+				IntPtr.Zero,
+				FileMode.Open,
+				FileAttributes.Device,
+				IntPtr.Zero);
+			if (handle != Kernel32.InvalidHandleValue) {
+				Hid.DeviceAttributes attributes;
+				if (Hid.HidD_GetAttributes(handle, out attributes)) {
+					return new HidDevice(
+						handle,
+						devicePath,
+						attributes.VendorId,
+						attributes.ProductId,
+						attributes.VersionNumber);
+				}
+				// If we could not get the hid attributes,
+				// then what we opened was not a hid device,
+				// we need to close the handle nonetheless.
+				Kernel32.CloseHandle(handle);
+			}
+			throw new Exception();
+		}
+
 		public Hid.Caps GetCaps() {
 			Hid.Caps caps;
 			Hid.HidP_GetCaps(preparsedData, out caps);
@@ -102,20 +133,21 @@ namespace LgLcd {
 		}
 
 		public void Dispose() {
-			Kernel32.CloseHandle(deviceHandle);
-			Hid.HidD_FreePreparsedData(preparsedData);
+			Kernel32.CloseHandle(handle);
 			Hid.HidD_FreePreparsedData(preparsedData);
 		}
 
 		// Use Open to get device objects
-		private HidDevice(IntPtr handle, int vendorId, int productId) {
-			deviceHandle = handle;
+		private HidDevice(IntPtr handle, string devicePath, int vendorId, int productId, int versionNumber) {
+			this.handle = handle;
+			DevicePath = devicePath;
 			VendorId = vendorId;
 			ProductId = productId;
+			VersionNumber = versionNumber;
 			Hid.HidD_GetPreparsedData(handle, out preparsedData);
 		}
 
-		private IntPtr deviceHandle;
+		private IntPtr handle;
 		private IntPtr preparsedData;
 	}
 
@@ -167,7 +199,7 @@ namespace LgLcd {
 		public static extern bool HidD_SetFeature(
 			IntPtr hidDeviceObject,
 			byte[] reportBuffer,
-			long reportBufferLength);
+			int reportBufferLength);
 
 		[DllImport("hid.dll")]
 		public static extern bool HidD_GetFeature(
@@ -234,7 +266,7 @@ namespace LgLcd {
 			public IntPtr Reserved;
 		}
 
-		[StructLayout(LayoutKind.Sequential, Pack = 1, CharSet = CharSet.Auto)]
+		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
 		public struct SpDeviceInterfaceDetailData {
 			public int Size;
 			// SizeConst is MaxPath
@@ -261,7 +293,7 @@ namespace LgLcd {
 		[DllImport("setupapi.dll", SetLastError = true)]
 		public static extern bool SetupDiEnumDeviceInterfaces(
 			IntPtr deviceInfoSet,
-			IntPtr deviceInfoData, // actually struct ref but optional
+			IntPtr deviceInfoData, // actually struct but optional
 			ref Guid interfaceClassGuid,
 			int memberIndex,
 			ref SpDeviceInterfaceData deviceInterfaceData);
@@ -273,7 +305,7 @@ namespace LgLcd {
 			ref SpDeviceInterfaceDetailData deviceInterfaceDetailData,
 			int deviceInterfaceDetailDataSize,
 			IntPtr unusedRequiredSize,
-			IntPtr unusedDeviceInfoData); // actually struct ref but optional
+			IntPtr unusedDeviceInfoData); // actually struct but optional
 
 		#endregion
 
