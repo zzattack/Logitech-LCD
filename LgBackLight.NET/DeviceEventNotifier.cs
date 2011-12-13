@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
-namespace LgLcd {
+namespace LgBackLight {
 
 	internal class DeviceEventArgs : EventArgs {
 		public string DevicePath { get; private set; }

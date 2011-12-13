@@ -54,6 +54,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\LgBackLight.NET\LgBackLight.NET.csproj">
+      <Project>{5C9C5142-89C0-432A-8A65-006F8A0806A9}</Project>
+      <Name>LgBackLight.NET</Name>
+    </ProjectReference>
     <ProjectReference Include="..\LgLcd.NET\LgLcd.NET.csproj">
       <Project>{6A21C0D9-1024-4774-948B-A918042A5D38}</Project>
       <Name>LgLcd.NET</Name>

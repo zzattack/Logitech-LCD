@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 
-namespace LgLcd {
+namespace LgBackLight {
 
 	internal class HidDevice : IDisposable {
 
