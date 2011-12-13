@@ -5,9 +5,7 @@ using System.Windows.Forms;
 using LgLcd;
 
 namespace LgLcdTest {
-
-
-
+	
 	class ExampleApplet : Applet, IDisposable {
 
 		protected override void OnDeviceArrival(DeviceType deviceType) {
@@ -60,16 +58,8 @@ namespace LgLcdTest {
 	class Program {
 		static void Main(string[] args) {
 			Application.Run(new LgLcdTestForm());
-			BackLight.SetBackLight(Color.Magenta);
-			System.Diagnostics.Debug.Assert(BackLight.GetBackLight() == Color.Magenta);
-			// Create and connect applet
-		//	ExampleApplet applet = new ExampleApplet();
-			//applet.Connect("My Applet", false, AppletCapabilities.Qvga);
-			//System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
+			BackLight.SetBackLight(Color.Fuchsia);
 		}
 	}
 
 }
-
-// WTF did u do man it used to work
-// lemme check 1 sec, the option is named rebuild and out of date or sometihng

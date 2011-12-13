@@ -15,13 +15,12 @@ namespace LgLcdTest
 		public LgLcdTestForm()
 		{
 			InitializeComponent();
-			this.HandleCreated += new EventHandler(LgLcdTestForm_HandleCreated);
-			
+			this.HandleCreated += new EventHandler(LgLcdTestForm_HandleCreated);			
 		}
 
 		void LgLcdTestForm_HandleCreated(object sender, EventArgs e)
 		{
-			BackLight.RegisterDeviceNotifications(this.Handle);
+			BackLight.Initialize(base.Handle);
 		}
 	}
 }

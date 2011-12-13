@@ -78,7 +78,7 @@ namespace LgLcd {
 					if (hDevice != Kernel32.InvalidHandleValue) {
 						Hid.DeviceAttributes attributes;
 						if (Hid.HidD_GetAttributes(hDevice, out attributes)) {
-							if (vendorId == attributes.VendorId && productIds.Contains((int)attributes.ProductId)) {
+							if (vendorId == attributes.VendorId && productIds.Contains(attributes.ProductId)) {
 								deviceList.Add(
 									new HidDevice(
 										hDevice,
@@ -266,7 +266,7 @@ namespace LgLcd {
 			public IntPtr Reserved;
 		}
 
-		[DefaultCharSet(CharSet.Auto)]
+		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
 		public struct SpDeviceInterfaceDetailData {
 			public int Size;
 			// SizeConst is MaxPath

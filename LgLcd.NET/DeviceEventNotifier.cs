@@ -11,30 +11,36 @@ namespace LgLcd {
 		}
 	}
 
-	internal class DeviceEventDispatcher : NativeWindow {
+	internal class DeviceEventNotifier : NativeWindow {
 		
 		public event EventHandler<DeviceEventArgs> DeviceArrival;
 		public event EventHandler<DeviceEventArgs> DeviceRemoval;
 
-		public DeviceEventDispatcher(IntPtr hWnd, Guid deviceClass) {
-			base.AssignHandle(hWnd);
+		public DeviceEventNotifier(IntPtr windowHandle, Guid deviceClass) {
+			base.AssignHandle(windowHandle);
 			var filter = new User32.BroadcastHdr();
 			filter.Size = Marshal.SizeOf(filter);
 			filter.DeviceType = User32.DeviceType.Interface;
 			filter.Interface = new User32.BroadcastDeviceInterface();
 			filter.Interface.DeviceClass = deviceClass;
-			notificationHandle = User32.RegisterDeviceNotification(base.Handle, filter, 0);
+			notificationHandle = User32.RegisterDeviceNotification(
+				base.Handle,
+				filter,
+				User32.DeviceNotificationFlags.WindowHandle);
 		}
 
-		~DeviceEventDispatcher() {
+		~DeviceEventNotifier() {
 			User32.UnregisterDeviceNotification(notificationHandle);
 		}
 
 		protected override void WndProc(ref System.Windows.Forms.Message m) {
 			if (m.Msg == (int)User32.WindowMessage.DeviceChange) {
-				var hdr = (User32.BroadcastHdr)Marshal.PtrToStructure(
-					m.LParam,
-					typeof(User32.BroadcastHdr));
+				User32.BroadcastHdr hdr = new User32.BroadcastHdr();
+				if (m.LParam != IntPtr.Zero) {
+					hdr = (User32.BroadcastHdr)Marshal.PtrToStructure(
+						m.LParam,
+						typeof(User32.BroadcastHdr));	
+				}
 				switch (m.WParam.ToInt32()) {
 					case (int)User32.DeviceEvent.DeviceArrival:
 						OnDeviceArrived(hdr.Interface.Name);
@@ -43,8 +49,8 @@ namespace LgLcd {
 						OnDeviceRemoval(hdr.Interface.Name);
 						break;
 				}
-				base.WndProc(ref m);
 			}
+			base.WndProc(ref m);
 		}
 
 		/// <summary>
@@ -100,22 +106,17 @@ namespace LgLcd {
 
 		#region Structures
 
-		[DefaultCharSet(CharSet.Auto)]
+		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
 		public struct BroadcastDeviceInterface {
 			public Guid DeviceClass;
 			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
 			public string Name;
 		}
 
-		[StructLayout(LayoutKind.Explicit)]
 		public struct BroadcastHdr {
-			[FieldOffset(0)]
 			public int Size;
-			[FieldOffset(4)]
 			public DeviceType DeviceType;
-			[FieldOffset(8)]
 			public int Reserved;
-			[FieldOffset(12)]
 			public BroadcastDeviceInterface Interface;
 		}
 
