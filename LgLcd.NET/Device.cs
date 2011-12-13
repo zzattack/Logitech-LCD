@@ -114,8 +114,8 @@ namespace LgLcd {
 		public void UpdateBitmap(
 			Bitmap bitmap,
 			Priority priority,
-			bool syncUpdate,
-			bool syncCompleteWithinFrame) {
+			bool syncUpdate = false,
+			bool syncCompleteWithinFrame = false) {
 			if (!Opened) {
 				throw new Exception("Not opened.");
 			}
