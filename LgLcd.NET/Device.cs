@@ -34,11 +34,11 @@ namespace LgLcd {
 	public class Device {
 		
 		// The device handle
-		private int handle = LgLcd.InvalidDevice;
-		public int Handle { get { return handle; } }
+		private int _handle = LgLcd.InvalidDevice;
+		public int Handle { get { return _handle; } }
 
 		// Gets whether the device is currently opened
-		public bool Opened { get { return handle != LgLcd.InvalidDevice; } }
+		public bool Opened { get { return _handle != LgLcd.InvalidDevice; } }
 
 		// The type of the device
 		public DeviceType Type { get; private set; }
@@ -47,8 +47,8 @@ namespace LgLcd {
 		public int BitmapWidth { get; private set; }
 		public int BitmapHeight { get; private set; }
 		public int BitmapBpp { get; private set; }
-		private LgLcd.BitmapFormat bitmapFormat;
-		private PixelFormat pixelFormat;
+		private LgLcd.BitmapFormat _bitmapFormat;
+		private PixelFormat _pixelFormat;
 
 		public event EventHandler Left;
 		public event EventHandler Right;
@@ -59,7 +59,7 @@ namespace LgLcd {
 		public event EventHandler Menu;
 
 		public Device() {
-			SoftButtonsDelegate = new LgLcd.SoftButtonsDelegate(OnSoftButtons);
+			SoftButtonsDelegate = OnSoftButtons;
 		}
 
 		public void Open(Applet applet, DeviceType type) {
@@ -81,22 +81,22 @@ namespace LgLcd {
 			}
 			Type = type;
 			if (type == DeviceType.Monochrome) {
-				bitmapFormat = LgLcd.BitmapFormat.Monochrome;
+				_bitmapFormat = LgLcd.BitmapFormat.Monochrome;
 				BitmapWidth = (int)LgLcd.BwBmp.Width;
 				BitmapHeight = (int)LgLcd.BwBmp.Height;
 				BitmapBpp = (int)LgLcd.BwBmp.Bpp;
 			}
 			else if (type == DeviceType.Qvga) {
-				bitmapFormat = LgLcd.BitmapFormat.QVGAx32;
+				_bitmapFormat = LgLcd.BitmapFormat.QVGAx32;
 				BitmapWidth = (int)LgLcd.QvgaBmp.Width;
 				BitmapHeight = (int)LgLcd.QvgaBmp.Height;
 				BitmapBpp = (int)LgLcd.QvgaBmp.Bpp;
-				pixelFormat = PixelFormat.Format32bppArgb;
+				_pixelFormat = PixelFormat.Format32bppArgb;
 			}
-			var ctx = new LgLcd.OpenByTypeContext() {
+			var ctx = new LgLcd.OpenByTypeContext {
 				Connection = applet.Handle,
 				DeviceType = (LgLcd.DeviceType)Type,
-				OnSoftbuttonsChanged = new LgLcd.SoftbuttonsChangedContext() {
+				OnSoftbuttonsChanged = new LgLcd.SoftbuttonsChangedContext {
 					Context = IntPtr.Zero,
 					OnSoftbuttonsChanged = SoftButtonsDelegate,
 				}
@@ -108,7 +108,7 @@ namespace LgLcd {
 				}
 				throw new Win32Exception((int)error);
 			}
-			handle = ctx.Device;
+			_handle = ctx.Device;
 		}
 
 		public void UpdateBitmap(
@@ -122,14 +122,14 @@ namespace LgLcd {
 			if (bitmap.Width != BitmapWidth || bitmap.Height != BitmapHeight) {
 				throw new ArgumentException("The bitmaps dimensions do not conform.");
 			}
-			var lgBitmap = new LgLcd.Bitmap() {
-				Format = bitmapFormat,
+			var lgBitmap = new LgLcd.Bitmap {
+				Format = _bitmapFormat,
 				Pixels = new byte[BitmapWidth * BitmapHeight * BitmapBpp],
 			};
 			var bitmapData = bitmap.LockBits(
 				new Rectangle(0, 0, BitmapWidth, BitmapHeight),
 				ImageLockMode.ReadOnly,
-				pixelFormat);
+				_pixelFormat);
 			Marshal.Copy(bitmapData.Scan0, lgBitmap.Pixels, 0, lgBitmap.Pixels.Length);
 			bitmap.UnlockBits(bitmapData);
 			var error = LgLcd.UpdateBitmap(
@@ -142,7 +142,7 @@ namespace LgLcd {
 				if (error == LgLcd.ReturnValue.ErrorDeviceNotConnected) {
 					throw new Exception("The specified device has been disconnected.");
 				}
-				else if (error == LgLcd.ReturnValue.ErrorAccessDenied) {
+				if (error == LgLcd.ReturnValue.ErrorAccessDenied) {
 					throw new Exception("Synchronous operation was not displayed on the LCD within the frame interval (30 ms).");
 				}
 				throw new Win32Exception((int)error);
@@ -186,7 +186,7 @@ namespace LgLcd {
 				throw new Win32Exception((int)error);
 			}
 			// Reset device handle
-			handle = LgLcd.InvalidDevice;
+			_handle = LgLcd.InvalidDevice;
 		}
 
 		private int OnSoftButtons(int device, LgLcd.SoftButtonFlags buttons, IntPtr context) {

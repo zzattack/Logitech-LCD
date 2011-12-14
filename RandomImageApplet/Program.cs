@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Forms;
 
-namespace InfoApplet {
+namespace RandomImageApplet {
 	static class Program {
 		/// <summary>
 		/// The main entry point for the application.
@@ -11,8 +9,8 @@ namespace InfoApplet {
 		[STAThread]
 		static void Main()
 		{
-			new InfoApplet();
-			Application.Run();
+			new RandomImageApplet();
+			System.Diagnostics.Process.GetCurrentProcess().WaitForExit();
 		}
 	}
 }

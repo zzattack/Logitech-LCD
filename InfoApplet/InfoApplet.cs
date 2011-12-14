@@ -2,52 +2,43 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Windows.Forms;
 using LgLcd;
 using System.Drawing;
 using System.Diagnostics;
 
 namespace InfoApplet {
-	public class InfoApplet : Applet {
+	public partial class InfoApplet : WinFormsApplet 
+	{
+
 		public InfoApplet() {
-			this.Connect("Info Applet", true, AppletCapabilities.Qvga);
-			form.Paint += new System.Windows.Forms.PaintEventHandler(form_Paint);
+			InitializeComponent();
+			tmrUpdateScreen.Interval = 1000 - DateTime.Now.Millisecond;
+			tmrUpdateScreen.Start();
 		}
 
-		protected override void OnDeviceArrival(DeviceType deviceType) {
-			lcd.Open(this, DeviceType.Qvga);
+		public override string AppletName {
+			get { return "InfoDisplay"; }
 		}
 
-		void form_Paint(object sender, System.Windows.Forms.PaintEventArgs e) {
-			form.Paint -= form_Paint;
-			// form.DrawToBitmap(bmp, form.ClientRectangle);
-			form.Paint += form_Paint;
-			//lcd.UpdateBitmap(bmp, Priority.Normal);
+		private void tmrUpdateScreen_Tick(object sender, EventArgs e) {
+			tmrUpdateScreen.Stop();
+			tmrUpdateScreen.Interval = 1000 - DateTime.Now.Millisecond; // resynchronize all the time
+			tmrUpdateScreen.Start();
+			this.lblTime.Text = DateTime.Now.ToString("HH:mm:ss");
+
+			// request screen update
+			UpdateLcdScreen(this, new EventArgs());
 		}
 
-		protected override void OnDeviceRemoval(DeviceType deviceType) {
-			lcd.Close();
-		}
+		public override event EventHandler UpdateLcdScreen;
 
-		protected override void OnAppletEnabled() {
-			// form.DrawToBitmap(bmp, form.ClientRectangle);			
-		}
-
-		protected override void OnAppletDisabled() {
-			// applet got disabled, stop drawing
-		}
-
-		protected override void OnCloseConnection() {
-			// oopz, our applet cant do anything anymore now
-			// unless it's connected again
-		}
-
-		protected override void OnConfigure() {
-			// show a configuration form (not mandatory)
-		}
-
-		Device lcd = new Device();
-		AppletForm form = new AppletForm();
-		Bitmap bmp = new Bitmap(320, 240);
+		public override void OnDeviceArrival(DeviceType deviceType) {}
+		public override void OnDeviceRemoval(DeviceType deviceType) {}
+		public override void OnAppletEnabled() {}
+		public override void OnAppletDisabled() {}
+		public override void OnCloseConnection() {}
+		public override void OnConfigure() {}
 
 	}
 }

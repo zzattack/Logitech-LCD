@@ -46,17 +46,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AppletForm.cs">
+    <Compile Include="InfoApplet.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="AppletForm.Designer.cs">
-      <DependentUpon>AppletForm.cs</DependentUpon>
+    <Compile Include="InfoApplet.Designer.cs">
+      <DependentUpon>InfoApplet.cs</DependentUpon>
     </Compile>
-    <Compile Include="InfoApplet.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="AppletForm.resx">
-      <DependentUpon>AppletForm.cs</DependentUpon>
+    <EmbeddedResource Include="InfoApplet.resx">
+      <DependentUpon>InfoApplet.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -88,6 +87,10 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
