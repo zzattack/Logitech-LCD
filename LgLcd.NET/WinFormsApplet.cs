@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Drawing;
+using System.Runtime.InteropServices;
 
 namespace LgLcd {
 
@@ -40,14 +41,37 @@ namespace LgLcd {
 
 		// called when deriving FormApplet requests the lcd to be repainted
 		Bitmap bm = new Bitmap(320, 240, PixelFormat.Format32bppArgb);
+		System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
 		void WinFormsApplet_UpdateLcdScreen(object sender, EventArgs e) {
-			lock (bm)
-			{
-				this.DrawToBitmap(bm, this.ClientRectangle);
-			}
+			sw.Reset();
+			sw.Start();
+			DrawToBitmap2(bm, this.ClientRectangle);
+			System.Diagnostics.Debug.WriteLine("DrawToBitmap took " + sw.ElapsedMilliseconds.ToString() + "ms");
 			device.UpdateBitmap(bm, Priority.Normal);
 		}
+
+		private void DrawToBitmap2(Bitmap bitmap, Rectangle targetBounds) {
+			if (bitmap == null)
+				throw new ArgumentNullException("bitmap");
+			if (targetBounds.Width <= 0 || targetBounds.Height <= 0 || targetBounds.X < 0 || targetBounds.Y < 0)
+				throw new ArgumentException("targetBounds");
+			if (!this.IsHandleCreated)
+				this.CreateHandle();
+
+			int width = Math.Min(this.Width, targetBounds.Width);
+			int height = Math.Min(this.Height, targetBounds.Height);
+			Bitmap image = new Bitmap(width, height, bitmap.PixelFormat);
+			using (Graphics graphics = Graphics.FromImage(bitmap)) {
+				IntPtr hdc = graphics.GetHdc();
+				SendMessage(new HandleRef(this, this.Handle), 0x317, hdc, (IntPtr)30);
+				graphics.ReleaseHdcInternal(hdc);
+			}
+		}
 		
+		[DllImport("user32.dll", CharSet = CharSet.Auto)]
+		public static extern IntPtr SendMessage(HandleRef hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+
 		public abstract void OnDeviceArrival(DeviceType deviceType);
 		public abstract void OnDeviceRemoval(DeviceType deviceType);
 		public abstract void OnAppletEnabled();
@@ -56,12 +80,6 @@ namespace LgLcd {
 		public abstract void OnConfigure();
 
 		#region Applet proxy
-		// @alex: I wanted to make it easier for the end user to just make a form,
-		// and have them fire some event like UpdateLcd(), in which we use Control.DrawToBitmap()
-		// and update the LCD for them.. 
-		// Sadly.. without multiple inheritance, a proxy as below is our best bet
-		// of getting the functionality from Form and Applet combined :(
-
 		internal class AppletProxy : Applet {
 			private readonly IApplet _proxy;
 			public AppletProxy(IApplet proxy) {

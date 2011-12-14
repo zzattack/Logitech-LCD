@@ -9,23 +9,21 @@ using System.Diagnostics;
 using System.Management;
 
 namespace InfoApplet {
-	public partial class InfoApplet : WinFormsApplet 
-	{
+	public partial class InfoApplet : WinFormsApplet {
 
 		public InfoApplet() {
 			InitializeComponent();
 			tmrUpdateScreen.Interval = 1000 - DateTime.Now.Millisecond;
 			tmrUpdateScreen.Start();
-
-			WmpMonitor wmpMonitor = new WmpMonitor();
-			wmpMonitor.UpdatePlayingTrack();
-
+			
 			ManagementObjectSearcher searcher = new ManagementObjectSearcher("select * from win32_processor");
 			foreach (var o in searcher.Get()) {
 				foreach (var prop in o.Properties) {
 					Debug.WriteLine(string.Format("{0}: {1}", prop.Name, prop.Value));
 				}
 			}
+
+			device.SetAsLCDForegroundApp(true);
 		}
 
 		public override string AppletName {
@@ -33,24 +31,28 @@ namespace InfoApplet {
 		}
 
 		private void tmrUpdateScreen_Tick(object sender, EventArgs e) {
-			
+
 			tmrUpdateScreen.Stop();
 			tmrUpdateScreen.Interval = 1000 - DateTime.Now.Millisecond; // resynchronize all the time
 			tmrUpdateScreen.Start();
 			this.lblTime.Text = DateTime.Now.ToString("HH:mm:ss");
+			Invalidate();
 
 			// request screen update
 			UpdateLcdScreen(this, new EventArgs());
 		}
 
-		public override event EventHandler UpdateLcdScreen;
+		protected override void OnPaint(PaintEventArgs e) {
+			base.OnPaint(e);
+		}
 
-		public override void OnDeviceArrival(DeviceType deviceType) {}
-		public override void OnDeviceRemoval(DeviceType deviceType) {}
-		public override void OnAppletEnabled() {}
-		public override void OnAppletDisabled() {}
-		public override void OnCloseConnection() {}
-		public override void OnConfigure() {}
+		public override event EventHandler UpdateLcdScreen;
+		public override void OnDeviceArrival(DeviceType deviceType) { }
+		public override void OnDeviceRemoval(DeviceType deviceType) { }
+		public override void OnAppletEnabled() { }
+		public override void OnAppletDisabled() { }
+		public override void OnCloseConnection() { }
+		public override void OnConfigure() { }
 
 	}
 }
