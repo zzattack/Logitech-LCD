@@ -9,33 +9,33 @@ namespace LgLcdTest {
 	
 	class ExampleApplet : Applet, IDisposable {
 
-		protected override void OnDeviceArrival(DeviceType deviceType) {
+		public override void OnDeviceArrival(DeviceType deviceType) {
 			MessageBox.Show("Device arrived " + deviceType.ToString());
 			device.Open(this, DeviceType.Qvga);
 			timer.Interval = 1000;
 			timer.Elapsed += new ElapsedEventHandler(timer_Elapsed);
 		}
-		
-		protected override void OnDeviceRemoval(DeviceType deviceType) {
+
+		public override void OnDeviceRemoval(DeviceType deviceType) {
 			MessageBox.Show("Device removed " + deviceType.ToString());
 		}
 
-		protected override void OnAppletEnabled() {
+		public override void OnAppletEnabled() {
 			MessageBox.Show("Applet enabled");
 			timer.Start();
 		}
 
-		protected override void OnAppletDisabled() {
+		public override void OnAppletDisabled() {
 			MessageBox.Show("Applet disabled");
 			timer.Stop();
 		}
 
-		protected override void OnCloseConnection() {
+		public override void OnCloseConnection() {
 			MessageBox.Show("Connection closed");
 			timer.Stop();
 		}
 
-		protected override void OnConfigure() {
+		public override void OnConfigure() {
 			MessageBox.Show("Configure");
 		}
 

@@ -61,7 +61,7 @@
       <NoEntryPoint>false</NoEntryPoint>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(OutDir)\$(TargetFileName)" "$(SolutionDir)\LgLcdTest\bin\Debug"</Command>
+      <Command>copy "$(OutDir)\$(TargetFileName)" "$(SolutionDir)\LgLcd.NET\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

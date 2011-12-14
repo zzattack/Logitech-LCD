@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using LgLcd;
 using System.Drawing;
 using System.Diagnostics;
+using System.Management;
 
 namespace InfoApplet {
 	public partial class InfoApplet : WinFormsApplet 
@@ -15,6 +16,16 @@ namespace InfoApplet {
 			InitializeComponent();
 			tmrUpdateScreen.Interval = 1000 - DateTime.Now.Millisecond;
 			tmrUpdateScreen.Start();
+
+			WmpMonitor wmpMonitor = new WmpMonitor();
+			wmpMonitor.UpdatePlayingTrack();
+
+			ManagementObjectSearcher searcher = new ManagementObjectSearcher("select * from win32_processor");
+			foreach (var o in searcher.Get()) {
+				foreach (var prop in o.Properties) {
+					Debug.WriteLine(string.Format("{0}: {1}", prop.Name, prop.Value));
+				}
+			}
 		}
 
 		public override string AppletName {
@@ -22,6 +33,7 @@ namespace InfoApplet {
 		}
 
 		private void tmrUpdateScreen_Tick(object sender, EventArgs e) {
+			
 			tmrUpdateScreen.Stop();
 			tmrUpdateScreen.Interval = 1000 - DateTime.Now.Millisecond; // resynchronize all the time
 			tmrUpdateScreen.Start();
