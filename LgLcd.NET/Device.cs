@@ -200,7 +200,7 @@ namespace LgLcd {
 						Right(this, null);
 					break;
 				case LgLcd.SoftButtonFlags.Ok:
-					if (Right != null)
+					if (Ok != null)
 						Ok(this, null);
 					break;
 				case LgLcd.SoftButtonFlags.Cancel:
@@ -220,6 +220,7 @@ namespace LgLcd {
 						Menu(this, null);
 					break;
 			}
+
 			return 0;
 		}
 

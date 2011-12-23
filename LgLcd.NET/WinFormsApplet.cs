@@ -7,6 +7,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace LgLcd {
 
@@ -22,9 +23,11 @@ namespace LgLcd {
 		private Applet applet;
 
 		protected WinFormsApplet() {
-			bool designMode = (LicenseManager.UsageMode == LicenseUsageMode.Designtime);
-			if (designMode) return;
+			// we don't want the designer to really call this constructor
+			if (LicenseManager.UsageMode == LicenseUsageMode.Designtime) return;
 
+			bm = new Bitmap(320, 240, PixelFormat.Format32bppArgb);
+			gfx = Graphics.FromImage(bm);
 			this.UpdateLcdScreen += new EventHandler(WinFormsApplet_UpdateLcdScreen);
 
 			applet = new AppletProxy(this);
@@ -39,45 +42,48 @@ namespace LgLcd {
 		/// </summary>
 		public abstract event EventHandler UpdateLcdScreen;
 
-		// called when deriving FormApplet requests the lcd to be repainted
-		Bitmap bm = new Bitmap(320, 240, PixelFormat.Format32bppArgb);
-		System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+		Stopwatch sw = new Stopwatch();
 		void WinFormsApplet_UpdateLcdScreen(object sender, EventArgs e) {
-			sw.Reset();
-			sw.Start();
-			DrawToBitmap2(bm, this.ClientRectangle);
-			System.Diagnostics.Debug.WriteLine("DrawToBitmap took " + sw.ElapsedMilliseconds.ToString() + "ms");
-			device.UpdateBitmap(bm, Priority.Normal);
+			//sw.Reset();
+			//sw.Start();
+			DrawToBitmap2();
+			//System.Diagnostics.Debug.WriteLine("DrawToBitmap took " + sw.ElapsedMilliseconds.ToString() + "ms");
+			try {
+				device.UpdateBitmap(bm, Priority.Normal);
+			}
+			catch { }
 		}
 
-		private void DrawToBitmap2(Bitmap bitmap, Rectangle targetBounds) {
-			if (bitmap == null)
-				throw new ArgumentNullException("bitmap");
-			if (targetBounds.Width <= 0 || targetBounds.Height <= 0 || targetBounds.X < 0 || targetBounds.Y < 0)
-				throw new ArgumentException("targetBounds");
+		/// <summary>
+		/// somewhat faster version of DrawToBitmap,
+		/// directly specifying a DC to the bitmap instead of 
+		/// generating a compatible one and then blitting
+		/// </summary>
+		private void DrawToBitmap2() {
 			if (!this.IsHandleCreated)
 				this.CreateHandle();
 
-			int width = Math.Min(this.Width, targetBounds.Width);
-			int height = Math.Min(this.Height, targetBounds.Height);
-			Bitmap image = new Bitmap(width, height, bitmap.PixelFormat);
-			using (Graphics graphics = Graphics.FromImage(bitmap)) {
-				IntPtr hdc = graphics.GetHdc();
-				SendMessage(new HandleRef(this, this.Handle), 0x317, hdc, (IntPtr)30);
-				graphics.ReleaseHdcInternal(hdc);
-			}
+			IntPtr hdc = gfx.GetHdc();
+			SendMessage(new HandleRef(this, this.Handle), 0x317, hdc, (IntPtr)30);
+			gfx.ReleaseHdc(hdc);
 		}
-		
+		Bitmap bm;
+		Graphics gfx;
+
 		[DllImport("user32.dll", CharSet = CharSet.Auto)]
-		public static extern IntPtr SendMessage(HandleRef hWnd, int msg, IntPtr wParam, IntPtr lParam);
+		static extern IntPtr SendMessage(HandleRef hWnd, int msg, IntPtr wParam, IntPtr lParam);
 
+		#region abstracted interface methods
 
-		public abstract void OnDeviceArrival(DeviceType deviceType);
-		public abstract void OnDeviceRemoval(DeviceType deviceType);
-		public abstract void OnAppletEnabled();
-		public abstract void OnAppletDisabled();
-		public abstract void OnCloseConnection();
-		public abstract void OnConfigure();
+		public virtual void OnDeviceArrival(DeviceType deviceType) { }
+		public virtual void OnDeviceRemoval(DeviceType deviceType) { }
+		public virtual void OnAppletEnabled() { }
+		public virtual void OnAppletDisabled() { }
+		public virtual void OnCloseConnection() { }
+		public virtual void OnConfigure() { }
+		public abstract string AppletName { get; }
+
+		#endregion
 
 		#region Applet proxy
 		internal class AppletProxy : Applet {
@@ -102,6 +108,5 @@ namespace LgLcd {
 
 		#endregion
 
-		public abstract string AppletName { get; }
 	}
 }

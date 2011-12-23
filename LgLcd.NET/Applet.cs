@@ -140,12 +140,12 @@ namespace LgLcd {
 
 		private LgLcd.ConfigureDelegate ConfigurationDelegate;
 		private LgLcd.NotificationDelegate NotificationDelegate;
-		
-		public abstract void OnDeviceArrival(DeviceType deviceType);
-		public abstract void OnDeviceRemoval(DeviceType deviceType);
-		public abstract void OnAppletEnabled();
-		public abstract void OnAppletDisabled();
-		public abstract void OnCloseConnection();
-		public abstract void OnConfigure();
+
+		public virtual void OnDeviceArrival(DeviceType deviceType) { }
+		public virtual void OnDeviceRemoval(DeviceType deviceType) { }
+		public virtual void OnAppletEnabled() { }
+		public virtual void OnAppletDisabled() { }
+		public virtual void OnCloseConnection() { }
+		public virtual void OnConfigure() { }
 	}
 }
