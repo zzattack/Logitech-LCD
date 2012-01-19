@@ -12,8 +12,14 @@ namespace LgBackLight {
 	}
 
 	internal class DeviceEventNotifier : NativeWindow {
-		
+
+		/// <summary>
+		/// Fires when a compatible device is physically added to the system.
+		/// </summary>
 		public event EventHandler<DeviceEventArgs> DeviceArrival;
+		/// <summary>
+		/// Fires when a compatible device is physically removed from the system.
+		/// </summary>
 		public event EventHandler<DeviceEventArgs> DeviceRemoval;
 
 		public DeviceEventNotifier(IntPtr windowHandle, Guid deviceClass) {
@@ -53,17 +59,11 @@ namespace LgBackLight {
 			base.WndProc(ref m);
 		}
 
-		/// <summary>
-		/// Fires when a compatible device is physically added to the system.
-		/// </summary>
 		private void OnDeviceArrived(string devicePath) {
 			if (DeviceArrival != null)
 				DeviceArrival(this, new DeviceEventArgs(devicePath));
 		}
 
-		/// <summary>
-		/// Fires when a compatible device is physically removed from the system.
-		/// </summary>
 		private void OnDeviceRemoval(string devicePath) {
 			if (DeviceRemoval != null)
 				DeviceRemoval(this, new DeviceEventArgs(devicePath));
