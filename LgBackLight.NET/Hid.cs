@@ -23,7 +23,7 @@ namespace LgBackLight {
 		}
 
 		public bool GetInputReport(byte[] reportBuffer) {
-			return Hid.HidD_GetInputReport(handle, ref reportBuffer, reportBuffer.Length);
+			return Hid.HidD_GetInputReport(handle, reportBuffer, reportBuffer.Length);
 		}
 
 		public bool SetOutputReport(byte[] reportBuffer) {
@@ -221,7 +221,7 @@ namespace LgBackLight {
 		[DllImport("hid.dll")]
 		public static extern bool HidD_GetInputReport(
 			IntPtr hidDeviceObject,
-			ref byte[] reportBuffer,
+			byte[] reportBuffer,
 			int reportBufferLength);
 
 		[DllImport("hid.dll")]

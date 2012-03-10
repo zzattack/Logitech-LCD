@@ -24,11 +24,14 @@ namespace LgBackLight {
 
 		public DeviceEventNotifier(IntPtr windowHandle, Guid deviceClass) {
 			base.AssignHandle(windowHandle);
-			var filter = new User32.BroadcastHdr();
-			filter.Size = Marshal.SizeOf(filter);
-			filter.DeviceType = User32.DeviceType.Interface;
-			filter.Interface = new User32.BroadcastDeviceInterface();
-			filter.Interface.DeviceClass = deviceClass;
+			var filterInterface = new User32.BroadcastDeviceInterface {
+				DeviceClass = deviceClass
+			};
+			var filter = new User32.BroadcastHdr {
+				Size = Marshal.SizeOf(typeof (User32.BroadcastHdr)),
+				DeviceType = User32.DeviceType.Interface,
+				Interface = filterInterface
+			};
 			notificationHandle = User32.RegisterDeviceNotification(
 				base.Handle,
 				filter,

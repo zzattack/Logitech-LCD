@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -190,37 +191,19 @@ namespace LgLcd {
 		}
 
 		private int OnSoftButtons(int device, LgLcd.SoftButtonFlags buttons, IntPtr context) {
-			switch (buttons) {
-				case LgLcd.SoftButtonFlags.Left:
-					if (Left != null)
-						Left(this, null);
-					break;
-				case LgLcd.SoftButtonFlags.Right:
-					if (Right != null)
-						Right(this, null);
-					break;
-				case LgLcd.SoftButtonFlags.Ok:
-					if (Ok != null)
-						Ok(this, null);
-					break;
-				case LgLcd.SoftButtonFlags.Cancel:
-					if (Cancel != null)
-						Cancel(this, null);
-					break;
-				case LgLcd.SoftButtonFlags.Up:
-					if (Up != null)
-						Up(this, null);
-					break;
-				case LgLcd.SoftButtonFlags.Down:
-					if (Down != null)
-						Down(this, null);
-					break;
-				case LgLcd.SoftButtonFlags.Menu:
-					if (Menu != null)
-						Menu(this, null);
-					break;
+			var buttonEvents = new Dictionary<LgLcd.SoftButtonFlags, EventHandler> {
+				{ LgLcd.SoftButtonFlags.Left, Left },
+				{ LgLcd.SoftButtonFlags.Right, Right },
+				{ LgLcd.SoftButtonFlags.Ok, Ok },
+				{ LgLcd.SoftButtonFlags.Cancel, Cancel },
+				{ LgLcd.SoftButtonFlags.Up, Up },
+				{ LgLcd.SoftButtonFlags.Down, Down },
+				{ LgLcd.SoftButtonFlags.Menu, Menu }
+			};
+			EventHandler buttonEvent;
+			if (buttonEvents.TryGetValue(buttons, out buttonEvent) && buttonEvent != null) {
+				buttonEvent(this, EventArgs.Empty);
 			}
-
 			return 0;
 		}
 
