@@ -191,18 +191,34 @@ namespace LgLcd {
 		}
 
 		private int OnSoftButtons(int device, LgLcd.SoftButtonFlags buttons, IntPtr context) {
-			var buttonEvents = new Dictionary<LgLcd.SoftButtonFlags, EventHandler> {
-				{ LgLcd.SoftButtonFlags.Left, Left },
-				{ LgLcd.SoftButtonFlags.Right, Right },
-				{ LgLcd.SoftButtonFlags.Ok, Ok },
-				{ LgLcd.SoftButtonFlags.Cancel, Cancel },
-				{ LgLcd.SoftButtonFlags.Up, Up },
-				{ LgLcd.SoftButtonFlags.Down, Down },
-				{ LgLcd.SoftButtonFlags.Menu, Menu }
-			};
-			EventHandler buttonEvent;
-			if (buttonEvents.TryGetValue(buttons, out buttonEvent) && buttonEvent != null) {
-				buttonEvent(this, EventArgs.Empty);
+			EventHandler e = null;
+			switch (buttons)
+			{
+				case LgLcd.SoftButtonFlags.Left:
+					e = Left;
+					break;
+				case LgLcd.SoftButtonFlags.Right:
+					e = Right;
+					break;
+				case LgLcd.SoftButtonFlags.Ok:
+					e = Ok;
+					break;
+				case LgLcd.SoftButtonFlags.Cancel:
+					e = Cancel;
+					break;
+				case LgLcd.SoftButtonFlags.Up:
+					e = Up;
+					break;
+				case LgLcd.SoftButtonFlags.Down:
+					e = Down;
+					break;
+				case LgLcd.SoftButtonFlags.Menu:
+					e = Menu;
+					break;
+			}
+			if (e != null)
+			{
+				e(this, EventArgs.Empty);
 			}
 			return 0;
 		}
