@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Drawing.Imaging;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
-using System.Diagnostics;
+using System.Windows.Forms;
 
 namespace LgLcd {
 
@@ -19,22 +15,22 @@ namespace LgLcd {
 	/// </summary>
 	[TypeDescriptionProvider(typeof(ConcreteClassProvider))]
 	public abstract class WinFormsApplet : UserControl, IApplet {
-		protected Device device;
-		private Applet applet;
+		protected Device Device;
+		private Applet _applet;
 
 		protected WinFormsApplet() {
 			// we don't want the designer to really call this constructor
 			if (LicenseManager.UsageMode == LicenseUsageMode.Designtime) return;
 
-			bm = new Bitmap(320, 240, PixelFormat.Format32bppArgb);
-			gfx = Graphics.FromImage(bm);
-			this.UpdateLcdScreen += new EventHandler(WinFormsApplet_UpdateLcdScreen);
+			_bm = new Bitmap(320, 240, PixelFormat.Format32bppArgb);
+			_gfx = Graphics.FromImage(_bm);
+			UpdateLcdScreen += WinFormsApplet_UpdateLcdScreen;
 
-			applet = new AppletProxy(this);
+			_applet = new AppletProxy(this);
 			Connect(AppletName, true, AppletCapabilities.Qvga);
 
-			device = new Device();
-			device.Open(applet, DeviceType.Qvga);
+			Device = new Device();
+			Device.Open(_applet, DeviceType.Qvga);
 		}
 
 		/// <summary>
@@ -42,16 +38,17 @@ namespace LgLcd {
 		/// </summary>
 		public abstract event EventHandler UpdateLcdScreen;
 
-		Stopwatch sw = new Stopwatch();
 		void WinFormsApplet_UpdateLcdScreen(object sender, EventArgs e) {
 			//sw.Reset();
 			//sw.Start();
 			DrawToBitmap2();
 			//System.Diagnostics.Debug.WriteLine("DrawToBitmap took " + sw.ElapsedMilliseconds.ToString() + "ms");
 			try {
-				device.UpdateBitmap(bm, Priority.Normal);
+				Device.UpdateBitmap(_bm, Priority.Normal);
 			}
-			catch { }
+			catch (Win32Exception) { }
+			catch (InvalidOperationException) { }
+			catch (InvalidAsynchronousStateException) { }
 		}
 
 		/// <summary>
@@ -60,15 +57,15 @@ namespace LgLcd {
 		/// generating a compatible one and then blitting
 		/// </summary>
 		private void DrawToBitmap2() {
-			if (!this.IsHandleCreated)
-				this.CreateHandle();
+			if (!IsHandleCreated)
+				CreateHandle();
 
-			IntPtr hdc = gfx.GetHdc();
-			SendMessage(new HandleRef(this, this.Handle), 0x317, hdc, (IntPtr)30);
-			gfx.ReleaseHdc(hdc);
+			IntPtr hdc = _gfx.GetHdc();
+			SendMessage(new HandleRef(this, Handle), 0x317, hdc, (IntPtr)30);
+			_gfx.ReleaseHdc(hdc);
 		}
-		Bitmap bm;
-		Graphics gfx;
+		Bitmap _bm;
+		Graphics _gfx;
 
 		[DllImport("user32.dll", CharSet = CharSet.Auto)]
 		static extern IntPtr SendMessage(HandleRef hWnd, int msg, IntPtr wParam, IntPtr lParam);
@@ -89,7 +86,7 @@ namespace LgLcd {
 		internal class AppletProxy : Applet {
 			private readonly IApplet _proxy;
 			public AppletProxy(IApplet proxy) {
-				this._proxy = proxy;
+				_proxy = proxy;
 			}
 			public override void OnDeviceArrival(DeviceType deviceType) { _proxy.OnDeviceArrival(deviceType); }
 			public override void OnDeviceRemoval(DeviceType deviceType) { _proxy.OnDeviceRemoval(deviceType); }
@@ -100,12 +97,11 @@ namespace LgLcd {
 		}
 
 		public void Connect(string friendlyName, bool autostartable, AppletCapabilities appletCaps) {
-			applet.Connect(friendlyName, autostartable, appletCaps);
+			_applet.Connect(friendlyName, autostartable, appletCaps);
 		}
 		public void Disconnect() {
-			applet.Disconnect();
+			_applet.Disconnect();
 		}
-
 		#endregion
 
 	}

@@ -9,8 +9,7 @@ namespace LgLcd {
 		Qvga = LgLcd.AppletCapabilities.Qvga,
 	}
 
-	public interface IApplet
-	{
+	public interface IApplet {
 		// Notifications that must be implemented by an applet
 		void OnDeviceArrival(DeviceType deviceType);
 		void OnDeviceRemoval(DeviceType deviceType);
@@ -47,8 +46,8 @@ namespace LgLcd {
 		}
 
 		protected Applet(){
-			ConfigurationDelegate = ConfigureHandler;
-			NotificationDelegate = NotifyHandler;
+			_configurationDelegate = ConfigureHandler;
+			_notificationDelegate = NotifyHandler;
 		}
 
 		public void Connect(string friendlyName, bool autostartable, AppletCapabilities appletCaps) {
@@ -65,11 +64,11 @@ namespace LgLcd {
 				IsPersistent = true, // deprecated and ignored as of 3.00
 				OnConfigure = new LgLcd.ConfigureContext {
 					Context = IntPtr.Zero,
-					OnConfigure = ConfigurationDelegate,
+					OnConfigure = _configurationDelegate,
 				},
 				OnNotify = new LgLcd.NotificationContext {
 					Context = IntPtr.Zero,
-					OnNotification = NotificationDelegate,
+					OnNotification = _notificationDelegate,
 				},
 				Reserved1 = 0,
 			};
@@ -138,8 +137,8 @@ namespace LgLcd {
 			return 0;
 		}
 
-		private LgLcd.ConfigureDelegate ConfigurationDelegate;
-		private LgLcd.NotificationDelegate NotificationDelegate;
+		private LgLcd.ConfigureDelegate _configurationDelegate;
+		private LgLcd.NotificationDelegate _notificationDelegate;
 
 		public virtual void OnDeviceArrival(DeviceType deviceType) { }
 		public virtual void OnDeviceRemoval(DeviceType deviceType) { }

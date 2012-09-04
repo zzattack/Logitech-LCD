@@ -59,7 +59,7 @@ namespace LgLcd {
 		public event EventHandler Menu;
 
 		public Device() {
-			SoftButtonsDelegate = OnSoftButtons;
+			_softButtonsDelegate = OnSoftButtons;
 		}
 
 		public void Open(Applet applet, DeviceType type) {
@@ -98,7 +98,7 @@ namespace LgLcd {
 				DeviceType = (LgLcd.DeviceType)Type,
 				OnSoftbuttonsChanged = new LgLcd.SoftbuttonsChangedContext {
 					Context = IntPtr.Zero,
-					OnSoftbuttonsChanged = SoftButtonsDelegate,
+					OnSoftbuttonsChanged = _softButtonsDelegate,
 				}
 			};
 			LgLcd.ReturnValue error = LgLcd.OpenByType(ref ctx);
@@ -140,10 +140,10 @@ namespace LgLcd {
 				| (syncCompleteWithinFrame ? LgLcd.SyncCompleteWithinFrame : 0));
 			if (error != LgLcd.ReturnValue.ErrorSuccess) {
 				if (error == LgLcd.ReturnValue.ErrorDeviceNotConnected) {
-					throw new Exception("The specified device has been disconnected.");
+					throw new InvalidOperationException("The specified device has been disconnected.");
 				}
 				if (error == LgLcd.ReturnValue.ErrorAccessDenied) {
-					throw new Exception("Synchronous operation was not displayed on the LCD within the frame interval (30 ms).");
+					throw new InvalidAsynchronousStateException("Synchronous operation was not displayed on the LCD within the frame interval (30 ms).");
 				}
 				throw new Win32Exception((int)error);
 			}
@@ -224,6 +224,6 @@ namespace LgLcd {
 			return 0;
 		}
 
-		private LgLcd.SoftButtonsDelegate SoftButtonsDelegate;
+		private LgLcd.SoftButtonsDelegate _softButtonsDelegate;
 	}
 }

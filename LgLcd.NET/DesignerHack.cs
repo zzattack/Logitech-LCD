@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
 
 namespace LgLcd {
 
@@ -11,7 +7,6 @@ namespace LgLcd {
 	// http://www.pocketsilicon.com/post/Using-Visual-Studio-Whidbey-to-Design-Abstract-Forms.aspx
 
 	internal class ConcreteWinFormsApplet : WinFormsApplet {
-		public ConcreteWinFormsApplet() {}
 		public override event EventHandler UpdateLcdScreen;
 		public override void OnDeviceArrival(DeviceType deviceType) {}
 		public override void OnDeviceRemoval(DeviceType deviceType) {}
