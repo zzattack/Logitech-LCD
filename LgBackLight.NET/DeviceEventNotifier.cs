@@ -12,17 +12,26 @@ namespace LgBackLight {
 	}
 
 	internal class DeviceEventNotifier : NativeWindow {
-		
+
+		/// <summary>
+		/// Fires when a compatible device is physically added to the system.
+		/// </summary>
 		public event EventHandler<DeviceEventArgs> DeviceArrival;
+		/// <summary>
+		/// Fires when a compatible device is physically removed from the system.
+		/// </summary>
 		public event EventHandler<DeviceEventArgs> DeviceRemoval;
 
 		public DeviceEventNotifier(IntPtr windowHandle, Guid deviceClass) {
 			base.AssignHandle(windowHandle);
-			var filter = new User32.BroadcastHdr();
-			filter.Size = Marshal.SizeOf(filter);
-			filter.DeviceType = User32.DeviceType.Interface;
-			filter.Interface = new User32.BroadcastDeviceInterface();
-			filter.Interface.DeviceClass = deviceClass;
+			var filterInterface = new User32.BroadcastDeviceInterface {
+				DeviceClass = deviceClass
+			};
+			var filter = new User32.BroadcastHdr {
+				Size = Marshal.SizeOf(typeof (User32.BroadcastHdr)),
+				DeviceType = User32.DeviceType.Interface,
+				Interface = filterInterface
+			};
 			notificationHandle = User32.RegisterDeviceNotification(
 				base.Handle,
 				filter,
@@ -53,17 +62,11 @@ namespace LgBackLight {
 			base.WndProc(ref m);
 		}
 
-		/// <summary>
-		/// Fires when a compatible device is physically added to the system.
-		/// </summary>
 		private void OnDeviceArrived(string devicePath) {
 			if (DeviceArrival != null)
 				DeviceArrival(this, new DeviceEventArgs(devicePath));
 		}
 
-		/// <summary>
-		/// Fires when a compatible device is physically removed from the system.
-		/// </summary>
 		private void OnDeviceRemoval(string devicePath) {
 			if (DeviceRemoval != null)
 				DeviceRemoval(this, new DeviceEventArgs(devicePath));

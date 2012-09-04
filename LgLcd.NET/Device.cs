@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -190,37 +191,35 @@ namespace LgLcd {
 		}
 
 		private int OnSoftButtons(int device, LgLcd.SoftButtonFlags buttons, IntPtr context) {
-			switch (buttons) {
+			EventHandler e = null;
+			switch (buttons)
+			{
 				case LgLcd.SoftButtonFlags.Left:
-					if (Left != null)
-						Left(this, null);
+					e = Left;
 					break;
 				case LgLcd.SoftButtonFlags.Right:
-					if (Right != null)
-						Right(this, null);
+					e = Right;
 					break;
 				case LgLcd.SoftButtonFlags.Ok:
-					if (Ok != null)
-						Ok(this, null);
+					e = Ok;
 					break;
 				case LgLcd.SoftButtonFlags.Cancel:
-					if (Cancel != null)
-						Cancel(this, null);
+					e = Cancel;
 					break;
 				case LgLcd.SoftButtonFlags.Up:
-					if (Up != null)
-						Up(this, null);
+					e = Up;
 					break;
 				case LgLcd.SoftButtonFlags.Down:
-					if (Down != null)
-						Down(this, null);
+					e = Down;
 					break;
 				case LgLcd.SoftButtonFlags.Menu:
-					if (Menu != null)
-						Menu(this, null);
+					e = Menu;
 					break;
 			}
-
+			if (e != null)
+			{
+				e(this, EventArgs.Empty);
+			}
 			return 0;
 		}
 
