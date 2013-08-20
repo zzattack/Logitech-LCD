@@ -25,7 +25,9 @@ namespace LgLcd {
 			_bm = new Bitmap(320, 240, PixelFormat.Format32bppArgb);
 			_gfx = Graphics.FromImage(_bm);
 			UpdateLcdScreen += WinFormsApplet_UpdateLcdScreen;
+		}
 
+		protected void InitializeApplet() {
 			_applet = new AppletProxy(this);
 			Connect(AppletName, true, AppletCapabilities.Qvga);
 
@@ -68,7 +70,7 @@ namespace LgLcd {
 		Graphics _gfx;
 
 		[DllImport("user32.dll", CharSet = CharSet.Auto)]
-		static extern IntPtr SendMessage(HandleRef hWnd, int msg, IntPtr wParam, IntPtr lParam);
+		protected static extern IntPtr SendMessage(HandleRef hWnd, int msg, IntPtr wParam, IntPtr lParam);
 
 		#region abstracted interface methods
 
