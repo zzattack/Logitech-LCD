@@ -75,9 +75,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BackLight.cs" />
     <Compile Include="DeviceEventNotifier.cs" />
     <Compile Include="Hid.cs" />
+    <Compile Include="LogitechKeyboardManager.cs" />
+    <Compile Include="LogitechKeyboard.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

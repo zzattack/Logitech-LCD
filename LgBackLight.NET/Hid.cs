@@ -14,27 +14,32 @@ namespace LgBackLight {
 		public int VersionNumber { get; private set; }
 		public string DevicePath { get; private set; }
 
-		public bool GetFeature(byte[] reportBuffer) {
+		internal bool GetFeature(byte[] reportBuffer) {
 			return Hid.HidD_GetFeature(handle, reportBuffer, reportBuffer.Length);
 		}
 
-		public bool SetFeature(byte[] reportBuffer) {
+        internal bool SetFeature(byte[] reportBuffer)
+        {
 			return Hid.HidD_SetFeature(handle, reportBuffer, reportBuffer.Length);
 		}
 
-		public bool GetInputReport(byte[] reportBuffer) {
+        internal bool GetInputReport(byte[] reportBuffer)
+        {
 			return Hid.HidD_GetInputReport(handle, reportBuffer, reportBuffer.Length);
 		}
 
-		public bool SetOutputReport(byte[] reportBuffer) {
+        internal bool SetOutputReport(byte[] reportBuffer)
+        {
 			return Hid.HidD_SetOutputReport(handle, reportBuffer, reportBuffer.Length);
 		}
 
-		public static List<HidDevice> GetDevices(int vendorId, int productId) {
-			return GetDevices(vendorId, new int[] { productId });
+        internal static List<HidDevice> Open(int vendorId, int productId)
+        {
+			return Open(vendorId, new int[] { productId });
 		}
 
-		public static List<HidDevice> GetDevices(int vendorId, IEnumerable<int> productIds) {
+        internal static List<HidDevice> Open(int vendorId, IEnumerable<int> productIds)
+        {
 			// Obtain system-defined GUID for HIDClass devices.
 			Guid hidClassGuid;
 			Hid.HidD_GetHidGuid(out hidClassGuid);
@@ -42,10 +47,14 @@ namespace LgBackLight {
 			// Obtain handle to an opaque device-information-set
 			// describing device interface supported by all HID
 			// collections currently installed in the system.
-			IntPtr deviceInfoSet = SetupApi.SetupDiGetClassDevs(ref hidClassGuid, null, IntPtr.Zero, SetupApi.DiGetFlags.DeviceInterface | SetupApi.DiGetFlags.Present);
-			if (deviceInfoSet == Kernel32.InvalidHandleValue)
+			IntPtr deviceInfoSet = SetupApi.SetupDiGetClassDevs(
+				ref hidClassGuid,
+				null,
+				IntPtr.Zero,
+				SetupApi.DiGetFlags.DeviceInterface | SetupApi.DiGetFlags.Present);
+			if (deviceInfoSet == Kernel32.InvalidHandleValue) {
 				throw new Win32Exception();
-
+			}
 			// Retrieve all available interface information.
 			SetupApi.SpDeviceInterfaceData did = new SetupApi.SpDeviceInterfaceData();
 			did.Size = Marshal.SizeOf(did);
@@ -53,20 +62,35 @@ namespace LgBackLight {
 			while (SetupApi.SetupDiEnumDeviceInterfaces(deviceInfoSet, IntPtr.Zero, ref hidClassGuid, i++, ref did)) {
 				// Obtain DevicePath
 				var didd = new SetupApi.SpDeviceInterfaceDetailData();
-				didd.Size = 4 + Marshal.SystemDefaultCharSize;
-				int size = 0;
-				if (SetupApi.SetupDiGetDeviceInterfaceDetail(deviceInfoSet, ref did, ref didd, Marshal.SizeOf(didd), ref size, IntPtr.Zero)) {
-					
+				// On x64 only 8 appears to work while on x86 it must be sizeof (int) + sizeof (TCHAR)
+				didd.Size = IntPtr.Size == 8 ? 8 : didd.Size + Marshal.SystemDefaultCharSize;
+				if (SetupApi.SetupDiGetDeviceInterfaceDetail(
+					deviceInfoSet,
+					ref did,
+					ref didd,
+					Marshal.SizeOf(didd),
+					IntPtr.Zero,
+					IntPtr.Zero)) {
 					// Write access causes failure if not running elevated.
-					IntPtr hDevice = Kernel32.CreateFile(didd.DevicePath, FileAccess.ReadWrite, // we just need read
+					IntPtr hDevice = Kernel32.CreateFile(
+						didd.DevicePath,
+						(uint)FileAccess.Read, // we just need read
 						FileShare.ReadWrite, // and we don't want to restrict others from write
-						IntPtr.Zero, FileMode.Open, FileAttributes.Device, IntPtr.Zero);
-
+						IntPtr.Zero,
+						FileMode.Open,
+						FileAttributes.Device,
+						IntPtr.Zero);
 					if (hDevice != Kernel32.InvalidHandleValue) {
 						Hid.DeviceAttributes attributes;
 						if (Hid.HidD_GetAttributes(hDevice, out attributes)) {
 							if (vendorId == attributes.VendorId && productIds.Contains(attributes.ProductId)) {
-								deviceList.Add(new HidDevice(hDevice, didd.DevicePath, vendorId, attributes.ProductId, attributes.VersionNumber));
+								deviceList.Add(
+									new HidDevice(
+										hDevice,
+										didd.DevicePath,
+										vendorId,
+										attributes.ProductId,
+										attributes.VersionNumber));
 								continue;
 							}
 						}
@@ -80,10 +104,11 @@ namespace LgBackLight {
 			return deviceList;
 		}
 
-		public static HidDevice Open(string devicePath) {
+        internal static HidDevice Open(string devicePath)
+        {
 			IntPtr handle = Kernel32.CreateFile(
 				devicePath,
-				FileAccess.Read,
+				(uint)FileAccess.Read,
 				FileShare.ReadWrite,
 				IntPtr.Zero,
 				FileMode.Open,
@@ -107,7 +132,8 @@ namespace LgBackLight {
 			throw new Exception();
 		}
 
-		public Hid.Caps GetCaps() {
+        internal Hid.Caps GetCaps()
+        {
 			Hid.Caps caps;
 			Hid.HidP_GetCaps(preparsedData, out caps);
 			return caps;
@@ -133,7 +159,7 @@ namespace LgBackLight {
 	}
 
 	// Hid.dll definitions
-	public static class Hid {
+	internal static class Hid {
 
 		#region Structures
 
@@ -240,7 +266,6 @@ namespace LgBackLight {
 
 		#region Structures
 
-		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1)]
 		public struct SpDeviceInterfaceData {
 			public int Size;
 			public Guid interfaceClassGuid;
@@ -248,11 +273,11 @@ namespace LgBackLight {
 			public IntPtr Reserved;
 		}
 
-		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto, Pack = 1)]
+		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
 		public struct SpDeviceInterfaceDetailData {
 			public int Size;
 			// SizeConst is MaxPath
-			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
+			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
 			public string DevicePath;
 		}
 
@@ -286,7 +311,7 @@ namespace LgBackLight {
 			ref SpDeviceInterfaceData deviceInterfaceData,
 			ref SpDeviceInterfaceDetailData deviceInterfaceDetailData,
 			int deviceInterfaceDetailDataSize,
-			ref int requiredSize,
+			IntPtr unusedRequiredSize,
 			IntPtr unusedDeviceInfoData); // actually struct but optional
 
 		#endregion
@@ -307,7 +332,7 @@ namespace LgBackLight {
 		[DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
 		public static extern IntPtr CreateFile(
 			string fileName,
-			FileAccess desiredAccess,
+			uint desiredAccess,
 			FileShare shareMode,
 			IntPtr securityAttributes, // struct but optional
 			FileMode mode,
