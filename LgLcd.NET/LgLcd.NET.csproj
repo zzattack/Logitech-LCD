@@ -70,15 +70,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Applet.cs" />
-    <Compile Include="DesignerHack.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
     <Compile Include="Device.cs" />
     <Compile Include="WinFormsApplet.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="LgLcd.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="WinFormsApplet.resx">
+      <DependentUpon>WinFormsApplet.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
