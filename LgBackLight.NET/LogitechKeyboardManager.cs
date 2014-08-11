@@ -13,9 +13,9 @@ namespace LgBackLight {
 		public static event EventHandler<LogitechKeyboardEventArgs> KeyboardConnected;
 		public static event EventHandler<LogitechKeyboardEventArgs> KeyboardDisconnected;
 
-		private static LogitechKeyboardTypes[] KeyboardsToListenFor;
+		private static LogitechKeyboardType[] KeyboardsToListenFor;
 
-		public static void Init(IntPtr windowHandle, params LogitechKeyboardTypes[] keyboardsToListenFor) {
+		public static void Init(IntPtr windowHandle, params LogitechKeyboardType[] keyboardsToListenFor) {
 			KeyboardsToListenFor = keyboardsToListenFor;
 
 			// Initialize device event dispatcher.
@@ -68,7 +68,7 @@ namespace LgBackLight {
 			}
 		}
 
-		public static List<LogitechKeyboard> GetKeyboards(LogitechKeyboardTypes keyboardType) {
+		public static List<LogitechKeyboard> GetKeyboards(LogitechKeyboardType keyboardType) {
 			AssertInitialized();
 
 			return devices.Where(

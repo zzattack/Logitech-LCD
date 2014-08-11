@@ -5,14 +5,14 @@ using System.Linq;
 using System.Text;
 
 namespace LgBackLight {
-	public struct LogitechKeyboardTypes {
-		public static readonly LogitechKeyboardTypes G19 = new LogitechKeyboardTypes(0xC229, 0x7);
-		public static readonly LogitechKeyboardTypes G510 = new LogitechKeyboardTypes(0xC22D, 0x5);
+	public struct LogitechKeyboardType {
+		public static readonly LogitechKeyboardType G19 = new LogitechKeyboardType(0xC229, 0x7);
+		public static readonly LogitechKeyboardType G510 = new LogitechKeyboardType(0xC22D, 0x5);
 
 		public byte ReportID;
 		public int ProductID;
 
-		public LogitechKeyboardTypes(int productId, byte reportId) {
+		public LogitechKeyboardType(int productId, byte reportId) {
 			ReportID = reportId;
 			ProductID = productId;
 		}
@@ -23,7 +23,7 @@ namespace LgBackLight {
 
 		public HidDevice Device { get; private set; }
 
-		public LogitechKeyboardTypes KeyboardType { get; private set; }
+		public LogitechKeyboardType KeyboardType { get; private set; }
 
 		public Color BackLightColor {
 			get {
@@ -44,7 +44,7 @@ namespace LgBackLight {
 			return Color.FromArgb(b[1], b[2], b[3]);
 		}
 
-		internal LogitechKeyboard(HidDevice device, LogitechKeyboardTypes type) {
+		internal LogitechKeyboard(HidDevice device, LogitechKeyboardType type) {
 			Device = device;
 			KeyboardType = type;
 		}

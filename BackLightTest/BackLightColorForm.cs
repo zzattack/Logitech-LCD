@@ -21,7 +21,7 @@ namespace BackLightTest
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            LogitechKeyboardManager.Init(Handle, LogitechKeyboardTypes.G510, LogitechKeyboardTypes.G19);
+            LogitechKeyboardManager.Init(Handle, LogitechKeyboardType.G510, LogitechKeyboardType.G19);
         }
 
         private void btnSearch_Click(object sender, EventArgs e)
@@ -39,15 +39,15 @@ namespace BackLightTest
 
         private void cmbKeyboards_SelectedIndexChanged(object sender, EventArgs e)
         {
-            LogitechKeyboardTypes selectedKeyboard;
+            LogitechKeyboardType selectedKeyboard;
             switch (cmbKeyboards.SelectedIndex)
             {
                 case 0: // G19 //
-                    selectedKeyboard = LogitechKeyboardTypes.G19;
+                    selectedKeyboard = LogitechKeyboardType.G19;
                     break;
                 case 1: // G510 //
                 default:
-                    selectedKeyboard = LogitechKeyboardTypes.G510;
+                    selectedKeyboard = LogitechKeyboardType.G510;
                     break;
 
             }
