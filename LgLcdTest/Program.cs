@@ -1,4 +1,6 @@
 ﻿using System.Drawing;
+using System.Linq;
+using System.Windows.Forms;
 using LgBackLight;
 
 namespace LgLcdTest {
@@ -6,9 +8,9 @@ namespace LgLcdTest {
 	class Program {
         public static LogitechKeyboard LogitechKeyboard;
 		static void Main(string[] args) {
+			Application.EnableVisualStyles();
 			var ctrl = new LgLcdTestForm();
-            LogitechKeyboard.BackLightColor = Color.HotPink;
-			System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
+			Application.Run();
 		}
 	}
 
