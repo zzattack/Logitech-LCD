@@ -7,20 +7,18 @@ namespace LgBackLight {
 
 	public static class BackLight {
 
-		public static Color GetBackLight() {
-			AssertInitialized();
-			return currentColor;
-		}
-
-		public static void SetBackLight(Color color) {
-			AssertInitialized();
+		public static void SetBackLight(HidDevice dev, Color color) {
 			// Create the feature buffer.
 			byte[] featureBuffer = new byte[] { reportId, color.R, color.G, color.B };
 			// Send it to all devices we know of.
-			foreach (var device in devices) {
-				device.Value.SetFeature(featureBuffer);
-			}
-			currentColor = color;
+			dev.SetFeature(featureBuffer);
+		}
+
+		public static Color GetBackLight(HidDevice device) {
+			byte[] b = new byte[4];
+			b[0] = reportId;
+			device.GetFeature(b);
+			return Color.FromArgb(b[1], b[2], b[3]);
 		}
 
 		public static void Initialize(IntPtr windowHandle) {
@@ -34,25 +32,12 @@ namespace LgBackLight {
 			deviceEventNotifier.DeviceRemoval += DeviceRemoved;
 			// Open all devices we can find for now.
 			devices = new Dictionary<string, HidDevice>();
-			var devs = HidDevice.Open(vendorId, productIds);
+			var devs = HidDevice.GetDevices(vendorId, productIds);
 			foreach (var dev in devs) {
 				devices.Add(dev.DevicePath.ToUpper(), dev);
 			}
 		}
 
-		private static void AssertInitialized() {
-			if (deviceEventNotifier == null) {
-				throw new ApplicationException(
-					"You must first call Initialize to use the BackLight features.");
-			}
-		}
-
-		private static Color ReadBackLight(HidDevice device) {
-			byte[] b = new byte[4];
-			b[0] = reportId;
-			device.GetFeature(b);
-			return Color.FromArgb(b[1], b[2], b[3]);
-		}
 
 		private static void DeviceAdded(object sender, DeviceEventArgs args) {
 			HidDevice hidDevice = HidDevice.Open(args.DevicePath);
@@ -79,7 +64,7 @@ namespace LgBackLight {
 				devices.Remove(path);
 			}
 		}
-		
+
 		static DeviceEventNotifier deviceEventNotifier;
 		static Dictionary<string, HidDevice> devices;
 		static Color currentColor;

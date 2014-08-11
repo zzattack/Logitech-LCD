@@ -4,14 +4,14 @@ using System.Windows.Forms;
 
 namespace LgBackLight {
 
-	internal class DeviceEventArgs : EventArgs {
+	public class DeviceEventArgs : EventArgs {
 		public string DevicePath { get; private set; }
 		public DeviceEventArgs(string devicePath) {
 			DevicePath = devicePath;
 		}
 	}
 
-	internal class DeviceEventNotifier : NativeWindow {
+	public class DeviceEventNotifier : NativeWindow {
 
 		/// <summary>
 		/// Fires when a compatible device is physically added to the system.
