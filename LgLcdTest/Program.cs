@@ -1,8 +1,4 @@
-﻿using System;
-using System.Drawing;
-using System.Timers;
-using System.Windows.Forms;
-using LgLcd;
+﻿using System.Drawing;
 using LgBackLight;
 
 namespace LgLcdTest {
