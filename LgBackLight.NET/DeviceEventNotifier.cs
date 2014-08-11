@@ -12,7 +12,6 @@ namespace LgBackLight {
 	}
 
 	public class DeviceEventNotifier : NativeWindow {
-
 		/// <summary>
 		/// Fires when a compatible device is physically added to the system.
 		/// </summary>
@@ -32,10 +31,7 @@ namespace LgBackLight {
 				DeviceType = User32.DeviceType.Interface,
 				Interface = filterInterface
 			};
-			notificationHandle = User32.RegisterDeviceNotification(
-				base.Handle,
-				filter,
-				User32.DeviceNotificationFlags.WindowHandle);
+			notificationHandle = User32.RegisterDeviceNotification(base.Handle, filter, User32.DeviceNotificationFlags.WindowHandle);
 		}
 
 		~DeviceEventNotifier() {
@@ -90,7 +86,7 @@ namespace LgBackLight {
 		}
 
 		[Flags]
-		public enum DeviceNotificationFlags {
+		public enum DeviceNotificationFlags : uint {
 			WindowHandle,
 			ServiceHandle,
 			AllInterfaceClasses = 4,
@@ -116,7 +112,8 @@ namespace LgBackLight {
 			public string Name;
 		}
 
-		public struct BroadcastHdr {
+		[StructLayout(LayoutKind.Sequential)]
+		public class BroadcastHdr {
 			public int Size;
 			public DeviceType DeviceType;
 			public int Reserved;
@@ -128,10 +125,7 @@ namespace LgBackLight {
 		#region Functions
 
 		[DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-		public static extern IntPtr RegisterDeviceNotification(
-			IntPtr recipient,
-			BroadcastHdr filter,
-			DeviceNotificationFlags flags);
+		public static extern IntPtr RegisterDeviceNotification(IntPtr recipient, BroadcastHdr filter, DeviceNotificationFlags flags);
 
 		[DllImport("user32.dll", SetLastError = true)]
 		public static extern bool UnregisterDeviceNotification(IntPtr handle);
