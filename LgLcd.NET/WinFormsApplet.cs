@@ -11,10 +11,11 @@ namespace LgLcd {
 	/// Very generic applet based on a UserControl. The implementer
 	/// can simply use the Designer to generate a UserControl which
 	/// using WinFormsApplet's functionality gets rendered off-screen and
-	/// pushed to the device
+	/// pushed to the device.
+	/// Use needs to override the UpdateLcdScreen event and invoke it 
+	/// whenever the screen needs to be repainted.
 	/// </summary>
-	[TypeDescriptionProvider(typeof(ConcreteClassProvider))]
-	public abstract class WinFormsApplet : UserControl, IApplet {
+	public class WinFormsApplet : UserControl, IApplet {
 		protected Device Device;
 		private Applet _applet;
 
@@ -38,7 +39,7 @@ namespace LgLcd {
 		/// <summary>
 		/// Forces deriving classes to implement a callback for when the screen needs to be updated
 		/// </summary>
-		public abstract event EventHandler UpdateLcdScreen;
+		public virtual event EventHandler UpdateLcdScreen;
 
 		void WinFormsApplet_UpdateLcdScreen(object sender, EventArgs e) {
 			//sw.Reset();
@@ -80,7 +81,7 @@ namespace LgLcd {
 		public virtual void OnAppletDisabled() { }
 		public virtual void OnCloseConnection() { }
 		public virtual void OnConfigure() { }
-		public abstract string AppletName { get; }
+		public virtual string AppletName { get { return "WinFormsApplet"; } }
 
 		#endregion
 
@@ -105,6 +106,17 @@ namespace LgLcd {
 			_applet.Disconnect();
 		}
 		#endregion
+
+		private void InitializeComponent() {
+			this.SuspendLayout();
+			// 
+			// WinFormsApplet
+			// 
+			this.Name = "WinFormsApplet";
+			this.Size = new System.Drawing.Size(320, 240);
+			this.ResumeLayout(false);
+
+		}
 
 	}
 }
