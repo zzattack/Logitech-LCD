@@ -106,17 +106,5 @@ namespace LgLcd {
 			_applet.Disconnect();
 		}
 		#endregion
-
-		private void InitializeComponent() {
-			this.SuspendLayout();
-			// 
-			// WinFormsApplet
-			// 
-			this.Name = "WinFormsApplet";
-			this.Size = new System.Drawing.Size(320, 240);
-			this.ResumeLayout(false);
-
-		}
-
 	}
 }
