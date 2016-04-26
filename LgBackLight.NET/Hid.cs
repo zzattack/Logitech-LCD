@@ -63,7 +63,7 @@ namespace LgBackLight {
 				// Obtain DevicePath
 				var didd = new SetupApi.SpDeviceInterfaceDetailData();
 				// On x64 only 8 appears to work while on x86 it must be sizeof (int) + sizeof (TCHAR)
-				didd.Size = IntPtr.Size == 8 ? 8 : didd.Size + Marshal.SystemDefaultCharSize;
+				didd.Size = IntPtr.Size == 8 ? 8 : IntPtr.Size + Marshal.SystemDefaultCharSize;
 				if (SetupApi.SetupDiGetDeviceInterfaceDetail(
 					deviceInfoSet,
 					ref did,
